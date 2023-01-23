@@ -10,8 +10,8 @@ class MetisCalculationsNamespace(BaseNamespace):
             method="POST",
             url=self._base_url,
             json={"dataId": data_id},
-            auth_requered=True,
+            auth_required=True,
         ) as r:
-            kek = await r.json()
-            print(kek)
-            return MetisRequestIdModel.from_response(kek)
+            result = await r.json()
+            print(result)
+            return MetisRequestIdModel.from_response(result)

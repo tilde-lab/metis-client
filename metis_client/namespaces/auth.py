@@ -23,6 +23,6 @@ class MetisAuthNamespace(BaseNamespace):
         """
         async with self._client.request(
             url=self._base_url,
-            auth_requered=self._auth_requered,
+            auth_required=self._auth_required,
         ) as r:
             return MetisWhoAmIModel.from_response(await r.json())

@@ -8,6 +8,6 @@ class MetisDatasourcesNamespace(BaseNamespace):
             method="POST",
             url=self._base_url,
             json={"content": content},
-            auth_requered=True,
+            auth_required=True,
         ) as r:
             return MetisRequestIdModel.from_response(await r.json())

@@ -80,7 +80,7 @@ class MetisClient(MetisBase):
         method: HttpMethods = "GET",
         params: Dict[str, Any] | None = None,
         timeout: int | None = None,
-        auth_requered: bool = False,
+        auth_required: bool = False,
         **_,
     ) -> ClientResponse:
         """
@@ -99,7 +99,7 @@ class MetisClient(MetisBase):
         )
 
         # preauthenticate
-        if auth_requered:
+        if auth_required:
             await self._do_auth()
 
         try:
@@ -117,7 +117,7 @@ class MetisClient(MetisBase):
                 await sleep(10)
                 result.close()
                 return await self._request(
-                    url, json, data, headers, method, params, timeout, auth_requered
+                    url, json, data, headers, method, params, timeout, auth_required
                 )
 
         except (
@@ -194,7 +194,7 @@ class MetisClient(MetisBase):
         method: HttpMethods = "GET",
         params: Dict[str, Any] | None = None,
         timeout: int | None = None,
-        auth_requered: bool = False,
+        auth_required: bool = False,
         **_,
     ) -> _RequestContextManager:
         """
@@ -209,13 +209,13 @@ class MetisClient(MetisBase):
         - `method`: The HTTP method to use for the request. Defaults to GET.
         - `params`: The query parameters to include in the request. Can be a dictionary or None.
         - `timeout`: The maximum amount of time to wait for the request to complete, in seconds. Can be an integer or None.
-        - `auth_requered`: Flag that auth requered for this request
+        - `auth_required`: Flag that auth requered for this request
         Returns:
         A `aiohttp.client._RequestContextManager` object representing the API response
         """
         return _RequestContextManager(
             self._request(
-                url, json, data, headers, method, params, timeout, auth_requered
+                url, json, data, headers, method, params, timeout, auth_required
             )
         )
 

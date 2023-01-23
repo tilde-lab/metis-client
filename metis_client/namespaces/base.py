@@ -14,7 +14,7 @@ class BaseNamespace(MetisBase):
 
     _base_url: URL
     _client: MetisClient
-    _auth_requered: bool = True
+    _auth_required: bool = True
     _root: "MetisRootNamespace"
 
     def __init__(
@@ -27,7 +27,7 @@ class BaseNamespace(MetisBase):
         """Initialise the namespace."""
         self._client = client
         self._base_url = base_url
-        self._auth_requered = auth_req
+        self._auth_required = auth_req
         self._root = root
         self.__post_init__()
 
