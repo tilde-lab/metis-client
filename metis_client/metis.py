@@ -1,11 +1,12 @@
+"""Main Metis API client"""
+
 from types import TracebackType
-from typing import List, Type
+from typing import List, Optional, Type
 
 import aiohttp
-from aiohttp import ClientTimeout, ClientSession, TraceConfig
+from aiohttp import ClientSession, ClientTimeout, TraceConfig
 from aiohttp.hdrs import USER_AGENT
-from aiohttp.typedefs import StrOrURL, LooseHeaders
-
+from aiohttp.typedefs import LooseHeaders, StrOrURL
 from yarl import URL
 
 from .auth import BaseAuthenticator
@@ -13,8 +14,8 @@ from .client import MetisClient
 from .const import DEFAULT_USER_AGENT
 from .models.base import MetisBase
 from .namespaces.root import MetisRootNamespace
-from .namespaces.v0 import MetisV0Namespace
 from .namespaces.stream import MetisStreamNamespace
+from .namespaces.v0 import MetisV0Namespace
 
 
 class MetisAPI(MetisBase):
@@ -29,12 +30,12 @@ class MetisAPI(MetisBase):
         self,
         base_url: StrOrURL,
         auth: BaseAuthenticator,
-        session: ClientSession | None = None,
-        headers: LooseHeaders | None = None,
-        timeout: int | None = None,
-        client_name: str | None = None,
-        trace_configs: List[TraceConfig] | None = None,
-    ):
+        session: Optional[ClientSession] = None,
+        headers: Optional[LooseHeaders] = None,
+        timeout: Optional[int] = None,
+        client_name: Optional[str] = None,
+        trace_configs: Optional[List[TraceConfig]] = None,
+    ):  # pylint: disable=too-many-arguments
         """
         Initialize Metis client.
 
@@ -76,7 +77,7 @@ class MetisAPI(MetisBase):
         self._ns_root = MetisRootNamespace(client, base_url)
 
     @property
-    def v0(self) -> MetisV0Namespace:
+    def v0(self) -> MetisV0Namespace:  # pylint: disable=invalid-name
         """Property to access the v0 namespace."""
         return self._ns_root.v0
 
@@ -91,13 +92,14 @@ class MetisAPI(MetisBase):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
     ) -> None:
         await self.close()
 
     async def close(self) -> None:
+        "Close stream and http session"
         self.stream.close()
         if self._session and self._close_session:
             return await self._session.close()

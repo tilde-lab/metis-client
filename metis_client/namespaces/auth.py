@@ -1,28 +1,34 @@
-from .base import BaseNamespace
-from ..models.auth import MetisWhoAmIModel, MetisAuthCredentialsModel
-from ..models.error import MetisErrorModel
+"""Authentication endpoints namespace"""
+
+from typing import Union
+
 from ..exc import MetisAuthenticationException
+from ..models.auth import MetisAuthCredentialsModel
+from ..models.error import MetisErrorModel
+from ..models.user import MetisUserModel
+from .base import BaseNamespace
 
 
 class MetisAuthNamespace(BaseNamespace):
-    async def login(self, email: str, password: str) -> bool | MetisErrorModel:
-        payload = MetisAuthCredentialsModel(email, password).to_request()
+    """Authentication endpoints namespace"""
+
+    async def login(self, email: str, password: str) -> Union[bool, MetisErrorModel]:
+        "Login"
+        payload = MetisAuthCredentialsModel(email, password).to_dto()
         try:
             async with self._client.request(
                 method="POST",
                 url=self._base_url,
                 json=payload,
-            ) as r:
-                return r.ok
+            ) as resp:
+                return resp.ok
         except MetisAuthenticationException as err:
-            return MetisErrorModel(status=err.status, message=err.error)
+            return MetisErrorModel(status=err.status, message=err.error or str(err))
 
-    async def whoami(self) -> MetisWhoAmIModel:
-        """
-        Get self info
-        """
+    async def whoami(self) -> MetisUserModel:
+        "Get self info"
         async with self._client.request(
             url=self._base_url,
             auth_required=self._auth_required,
-        ) as r:
-            return MetisWhoAmIModel.from_response(await r.json())
+        ) as resp:
+            return MetisUserModel.from_dto(await resp.json())

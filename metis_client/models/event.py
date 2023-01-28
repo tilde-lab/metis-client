@@ -1,201 +1,242 @@
-from datetime import datetime
+"""Event models"""
+
 import json
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Literal, Sequence, TypedDict, Union
 
 from aiohttp_sse_client.client import MessageEvent
-from metis_client.models.calculations import (
-    MetisMinimalCalculationsModel,
-    MetisMinimalCalculationsResponse,
-)
 
-from metis_client.models.datasources import (
-    MetisMinimalDatasourcesModel,
-    MetisMinimalDatasourcesResponse,
-)
+from .calculation import MetisCalculationDTO, MetisCalculationModel
+from .collection import MetisCollectionTypeDTO, MetisCollectionTypeModel
+from .datasource import MetisDataSourceDTO, MetisDataSourceModel
+from .error import MetisErrorDTO, MetisErrorModel
 
-from .error import MetisErrorResponse, MetisErrorModel
-from .user import MetisPrefixedMinimalUserResponse, MetisMinimalUserModel
-from .collection import MetisCollectionTypeResponse, MetisCollectionTypeModel
-from ..helpers import parse_rfc3339
+if TYPE_CHECKING:
+    from typing_extensions import Self, TypeGuard
+
+EventType = Union[
+    Literal["errors"],
+    Literal["pong"],
+    Literal["datasources"],
+    Literal["calculations"],
+]
+
+
+class MetisEventGuard:
+    "Base event class with guard"
+
+    @classmethod
+    def guard(cls, obj: Any) -> "TypeGuard[Self]":
+        "Type guard for self"
+        return isinstance(obj, cls)
+
+
+class MetisErrorEventDataDTO(TypedDict):
+    "Errors event data DTO"
+    reqId: str
+    data: Sequence[MetisErrorDTO]
+
+
+class MetisErrorEventDTO(TypedDict):
+    "Errors event DTO"
+
+    type: Literal["errors"]
+    data: MetisErrorEventDataDTO
 
 
 @dataclass(frozen=True)
-class MetisErrorEvent:
+class MetisErrorEventModel(MetisEventGuard):
+    "Error event model"
     request_id: str
     errors: Sequence[MetisErrorModel]
 
     @classmethod
-    def from_message_event(cls, evt: MessageEvent) -> "MetisErrorEvent":
-        if evt.type != "errors" or evt.message != "errors":
-            raise TypeError("Unknown event type")
+    def from_dto(cls, dto: MetisErrorEventDTO) -> "MetisErrorEventModel":
+        "Create model from DTO"
+        return cls(
+            dto.get("data", {}).get("reqId", ""),
+            [MetisErrorModel.from_dto(x) for x in dto.get("data", {}).get("data", [])],
+        )
 
-        payload = json.loads(evt.data)
-        errors = []
-        for err_dict in payload.get("data", []):
-            err_dict = cast(MetisErrorResponse, err_dict)
-            errors.append(MetisErrorModel.from_response(err_dict))
 
-        return cls(request_id=payload.get("reqId"), errors=errors)
+class MetisPongEventDTO(TypedDict):
+    "Pong event DTO"
+
+    type: Literal["pong"]
+    data: None
 
 
 @dataclass(frozen=True)
-class MetisPongEvent:
+class MetisPongEventModel(MetisEventGuard):
+    "Pong event model"
+
     @classmethod
-    def from_message_event(cls, evt: MessageEvent) -> "MetisPongEvent":
-        if not evt.type is None or evt.message != "" or evt.data != "pong":
-            raise TypeError("Event type mismatch")
+    def from_dto(cls, _: MetisPongEventDTO) -> "MetisPongEventModel":
+        "Create model from DTO"
         return cls()
 
 
-class MetisDatasourcesDataResponse(
-    MetisMinimalDatasourcesResponse, MetisPrefixedMinimalUserResponse
-):
-    createdAt: str
-    updatedAt: str
+class MetisDataSourcesEventDataDTO(TypedDict):
+    "Data sources event data DTO"
+
+    reqId: str
+    data: Sequence[MetisDataSourceDTO]
+    total: int
+    types: Sequence[MetisCollectionTypeDTO]
+
+
+class MetisDataSourcesEventDTO(TypedDict):
+    "Data sources event DTO"
+
+    type: Literal["datasources"]
+    data: MetisDataSourcesEventDataDTO
 
 
 @dataclass(frozen=True)
-class MetisDatasourcesModel(MetisMinimalDatasourcesModel):
-    user: MetisMinimalUserModel
-    type: MetisCollectionTypeModel | None
-    created_at: datetime
-    updated_at: datetime
-
-
-@dataclass(frozen=True)
-class MetisDatasourcesEvent:
+class MetisDataSourcesEventModel(MetisEventGuard):
+    "Data sources event model"
     request_id: str
     total: int
     types: Sequence[MetisCollectionTypeModel]
-    data: Sequence[MetisDatasourcesModel]
+    data: Sequence[MetisDataSourceModel]
 
     @classmethod
-    def from_message_event(cls, evt: MessageEvent) -> "MetisDatasourcesEvent":
-        if evt.type != "datasources" or evt.message != "datasources":
-            raise TypeError("Event type mismatch")
-        payload = json.loads(evt.data)
-
-        types: Dict[int, MetisCollectionTypeModel] = {}
-        for type_dict in payload.get("types", []):
-            type_dict = cast(MetisCollectionTypeResponse, type_dict)
-            t = MetisCollectionTypeModel.from_response(type_dict)
-            types[t.id] = t
-
-        data: List[MetisDatasourcesModel] = []
-        for data_dict in payload.get("data", []):
-            data_dict = cast(MetisDatasourcesDataResponse, data_dict)
-            d = MetisMinimalDatasourcesModel.from_response(data_dict)
-            data.append(
-                MetisDatasourcesModel(
-                    id=d.id,
-                    name=d.name,
-                    created_at=parse_rfc3339(data_dict.get("createdAt"))
-                    or datetime.fromtimestamp(0),
-                    updated_at=parse_rfc3339(data_dict.get("updatedAt"))
-                    or datetime.fromtimestamp(0),
-                    user=MetisMinimalUserModel.from_prefixed_response(data_dict),
-                    type=types.get(d.type),
-                )
-            )
-
+    def from_dto(cls, dto: MetisDataSourcesEventDTO) -> "MetisDataSourcesEventModel":
+        "Create model from DTO"
         return cls(
-            request_id=payload.get("reqId"),
-            total=payload.get("total", 0),
-            types=list(types.values()),
-            data=data,
+            dto.get("data", {}).get("reqId", ""),
+            dto.get("data", {}).get("total", 0),
+            [
+                MetisCollectionTypeModel.from_dto(x)
+                for x in dto.get("data", {}).get("types", [])
+            ],
+            [
+                MetisDataSourceModel.from_dto(x)
+                for x in dto.get("data", {}).get("data", [])
+            ],
         )
 
 
-data = {
-    "type": 2,
-    "name": "Au",
-    "progress": 25,
-    "id": 2,
-    "userId": 1,
-    "createdAt": "2023-01-20T17:59:34.176Z",
-    "updatedAt": "2023-01-20T17:59:34.176Z",
-}
+class MetisCalculationsEventDataDTO(TypedDict):
+    "Calculations event data DTO"
+
+    reqId: str
+    data: Sequence[MetisCalculationDTO]
+    total: int
+    types: Sequence[MetisCollectionTypeDTO]
 
 
-class MetisCalculationsDataResponse(MetisMinimalCalculationsResponse):
-    userId: int
-    createdAt: str
-    updatedAt: str
+class MetisCalculationsEventDTO(TypedDict):
+    "Calculations event DTO"
 
-
-@dataclass(frozen=True)
-class MetisCalculationsModel:
-    id: int
-    name: str
-    progress: int
-    user_id: int
-    type: MetisCollectionTypeModel | None
-    created_at: datetime
-    updated_at: datetime
+    type: Literal["calculations"]
+    data: MetisCalculationsEventDataDTO
 
 
 @dataclass(frozen=True)
-class MetisCalculationsEvent:
-    request_id: int
+class MetisCalculationsEventModel(MetisEventGuard):
+    "Calculations event model"
+    request_id: str
     total: int
     types: Sequence[MetisCollectionTypeModel]
-    data: Sequence[MetisCalculationsModel]
+    data: Sequence[MetisCalculationModel]
 
     @classmethod
-    def from_message_event(cls, evt: MessageEvent) -> "MetisCalculationsEvent":
-        if evt.type != "calculations" or evt.message != "calculations":
-            raise TypeError("Event type mismatch")
-        payload = json.loads(evt.data)
-
-        types: Dict[int, MetisCollectionTypeModel] = {}
-        for type_dict in payload.get("types", []):
-            type_dict = cast(MetisCollectionTypeResponse, type_dict)
-            t = MetisCollectionTypeModel.from_response(type_dict)
-            types[t.id] = t
-
-        data: List[MetisCalculationsModel] = []
-        for data_dict in payload.get("data", []):
-            data_dict = cast(MetisCalculationsDataResponse, data_dict)
-            c = MetisMinimalCalculationsModel.from_response(data_dict)
-            data.append(
-                MetisCalculationsModel(
-                    id=c.id,
-                    name=c.name,
-                    progress=data_dict.get("progress", 0),
-                    created_at=parse_rfc3339(data_dict.get("createdAt"))
-                    or datetime.fromtimestamp(0),
-                    updated_at=parse_rfc3339(data_dict.get("updatedAt"))
-                    or datetime.fromtimestamp(0),
-                    user_id=cast(int, types.get(c.type)),
-                    type=types.get(c.type),
-                )
-            )
-
+    def from_dto(cls, dto: MetisCalculationsEventDTO) -> "MetisCalculationsEventModel":
+        "Create model from DTO"
         return cls(
-            request_id=payload.get("reqId"),
-            total=payload.get("total", 0),
-            types=list(types.values()),
-            data=data,
+            dto.get("data", {}).get("reqId", ""),
+            dto.get("data", {}).get("total", 0),
+            [
+                MetisCollectionTypeModel.from_dto(x)
+                for x in dto.get("data", {}).get("types", [])
+            ],
+            [
+                MetisCalculationModel.from_dto(x)
+                for x in dto.get("data", {}).get("data", [])
+            ],
         )
 
 
+MetisEventDTO = Union[
+    MetisErrorEventDTO,
+    MetisPongEventDTO,
+    MetisDataSourcesEventDTO,
+    MetisCalculationsEventDTO,
+]
+
+
 @dataclass(frozen=True)
-class MetisOtherEvent:
+class MetisMessageEvent(MessageEvent):
+    "SSE Message Event"
+
     type: str
     message: str
     data: str
+    origin: str
+    last_event_id: str
 
     @classmethod
-    def from_message_event(cls, evt: MessageEvent) -> "MetisOtherEvent":
-        return cls(type=evt.type, message=evt.message, data=evt.data)
+    def from_dto(cls, data: MessageEvent) -> "MetisMessageEvent":
+        "Create model from DTO"
+        return cls(
+            type=data.type,
+            message=data.message,
+            data=data.data,
+            origin=data.origin,
+            last_event_id=data.last_event_id,
+        )
+
+    def to_dto(self) -> MetisEventDTO:
+        "Create DTO from model"
+        try:
+            if self.type == "errors" or self.message == "errors":
+                return MetisErrorEventDTO(type="errors", data=json.loads(self.data))
+            if self.type is None and self.message == "" and self.data == "pong":
+                return MetisPongEventDTO(type="pong", data=None)
+            if self.type == "datasources" and self.message == "datasources":
+                return MetisDataSourcesEventDTO(
+                    type="datasources", data=json.loads(self.data)
+                )
+            if self.type == "calculations" and self.message == "calculations":
+                return MetisCalculationsEventDTO(
+                    type="calculations", data=json.loads(self.data)
+                )
+        except json.JSONDecodeError as err:
+            return MetisErrorEventDTO(
+                type="errors",
+                data=MetisErrorEventDataDTO(
+                    reqId="",
+                    data=[MetisErrorDTO(status=400, error=str(err))],
+                ),
+            )
+        message = f"Unknown event type: {str(self)}"
+        return MetisErrorEventDTO(
+            type="errors",
+            data=MetisErrorEventDataDTO(
+                reqId="",
+                data=[MetisErrorDTO(status=400, error=message)],
+            ),
+        )
 
 
-MetisEvents = (
-    MetisErrorEvent
-    | MetisPongEvent
-    | MetisDatasourcesEvent
-    | MetisCalculationsEvent
-    | MetisOtherEvent
-)
-MetisEventType = TypeVar("MetisEventType", bound=MetisErrorEvent)
+MetisEvent = Union[
+    MetisErrorEventModel,
+    MetisPongEventModel,
+    MetisDataSourcesEventModel,
+    MetisCalculationsEventModel,
+]
+
+
+def cast_event(dto: MetisEventDTO) -> MetisEvent:
+    "Try to convert message to the typed event"
+    if dto["type"] == "pong":
+        return MetisPongEventModel.from_dto(dto)
+    if dto["type"] == "datasources":
+        return MetisDataSourcesEventModel.from_dto(dto)
+    if dto["type"] == "calculations":
+        return MetisCalculationsEventModel.from_dto(dto)
+    if dto["type"] == "errors":
+        return MetisErrorEventModel.from_dto(dto)
+    # never
+    return MetisErrorEventModel.from_dto(dto)

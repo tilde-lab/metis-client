@@ -1,6 +1,6 @@
 [build-system]
 # build the package with [flit](https://flit.readthedocs.io)
-requires = ["flit_core >=3.4,<4", "reentry"]
+requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
@@ -30,6 +30,8 @@ requires-python = ">=3.8"
 dependencies = [
     "aiohttp >= 3.7.4",
     "aiohttp-sse-client >= 0.2.1",
+    # because of TypeGuard, Self
+    "typing-extensions >= 4.0.1, < 5; python_version < '3.10'",
     "yarl >= 1.6.3, < 2.0",
 ]
 
@@ -42,8 +44,13 @@ debug = [
       "wdb"
 ]
 lint = [
+     "autoflake",
      "black",
      "flake8",
+     "flake8-bugbear",
+     "isort",
+     "pylint",
+     "pyupgrade",
 ]
 testing = [
 #     "mock==2.0.0",
@@ -58,14 +65,55 @@ testing = [
 #     "pytest",
 #     "pytest-cov",
 #     "pytest-timeout",
-    "reentry",
 ]
-# docs = [
-#     "sphinx"
-# ]
 
 [project.urls]
 Source = "https://github.com/tilde-lab/metis-client"
 
 [tool.flit.module]
 name = "metis_client"
+
+[tool.autoflake]
+expand-star-imports = true
+ignore-init-module-imports = true
+remove-all-unused-imports = true
+remove-duplicate-keys = true
+remove-unused-variables = true
+
+[tool.black]
+target-version = ['py38']
+
+[tool.isort]
+# see https://github.com/psf/black
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+combine_as_imports = true
+use_parentheses = true
+line_length = 88
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+ensure_newline_before_comments = true
+py_version = 38
+
+[tool.pylint.main]
+jobs = 0
+py-version = "3.8"
+recursive = true
+suggestion-mode = true
+
+[tool.pylint.basic]
+good-names = ["id", "_", "__"]
+
+[tool.pylint.design]
+max-args = 7
+max-attributes = 10
+min-public-methods = 1
+
+[tool.pylint.format]
+max-line-length = 88
+
+[tool.pylint.reports]
+output-format = "colorized"
+reports = "no"
+score = "no"

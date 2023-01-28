@@ -1,12 +1,16 @@
+"""Root namespace"""
+
 from yarl import URL
 
-from .base import BaseNamespace
-from .v0 import MetisV0Namespace
-from .stream import MetisStreamNamespace
 from ..client import MetisClient
+from .base import BaseNamespace
+from .stream import MetisStreamNamespace
+from .v0 import MetisV0Namespace
 
 
 class MetisRootNamespace(BaseNamespace):
+    """Root namespace"""
+
     def __init__(
         self,
         client: MetisClient,
@@ -24,7 +28,7 @@ class MetisRootNamespace(BaseNamespace):
         )
 
     @property
-    def v0(self) -> "MetisV0Namespace":
+    def v0(self) -> "MetisV0Namespace":  # pylint: disable=invalid-name
         """Property to access the v0 namespace."""
         return self.__ns_v0
 

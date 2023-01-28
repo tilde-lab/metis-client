@@ -1,6 +1,8 @@
 """Custom exceptions for metis_client."""
 
 
+from typing import Optional
+
 from aiohttp import ClientResponseError
 
 
@@ -12,9 +14,9 @@ class MetisException(BaseException):
     you should catch this base exception.
     """
 
-    error: str | None
+    error: Optional[str]
 
-    def __init__(self, *args, error: str | None = None, **kwargs):
+    def __init__(self, *args, error: Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.error = error
 
@@ -41,6 +43,7 @@ class MetisPermissionException(MetisHttpResponseError):
 
 class MetisAuthenticationException(MetisHttpResponseError):
     """This is raised when we recieve an authentication issue."""
+
 
 class MetisQuotaException(MetisHttpResponseError):
     """This is raised when quota excided."""

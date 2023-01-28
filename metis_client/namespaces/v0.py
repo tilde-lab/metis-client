@@ -1,10 +1,14 @@
-from .base import BaseNamespace
+"""v0 namespace"""
+
 from .auth import MetisAuthNamespace
+from .base import BaseNamespace
 from .calculations import MetisCalculationsNamespace
 from .datasources import MetisDatasourcesNamespace
 
 
 class MetisV0Namespace(BaseNamespace):
+    """v0 namespace"""
+
     def __post_init__(self) -> None:
         self.__ns_auth = MetisAuthNamespace(
             self._client, self._base_url / "auth", root=self._root
@@ -17,22 +21,20 @@ class MetisV0Namespace(BaseNamespace):
         )
 
     async def ping(self) -> None:
-        """
-        Run ping pong game
-        """
+        "Run ping pong game"
         await self._client.request(url=self._base_url, method="HEAD", json={})
 
     @property
     def auth(self) -> MetisAuthNamespace:
-        """Property to access the auth namespace."""
+        "Property to access the auth namespace."
         return self.__ns_auth
 
     @property
     def calculations(self) -> MetisCalculationsNamespace:
-        """Property to access the calculations namespace."""
+        "Property to access the calculations namespace."
         return self.__ns_calculations
 
     @property
     def datasources(self) -> MetisDatasourcesNamespace:
-        """Property to access the datasources namespace."""
+        "Property to access the datasources namespace."
         return self.__ns_datasources

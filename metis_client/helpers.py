@@ -1,11 +1,15 @@
+"""Small helpers"""
+
 import re
 from contextlib import suppress
 from datetime import datetime
+from typing import Optional
 
 LAST_Z_REGEX = re.compile(r"Z$", re.IGNORECASE)
 
 
-def parse_rfc3339(dt_str: str | None) -> datetime | None:
+def parse_rfc3339(dt_str: Optional[str]) -> Optional[datetime]:
+    "Parse RFC 3339 date string to datetime object"
     if not dt_str:
         return None
     with suppress(ValueError):

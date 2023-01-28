@@ -1,16 +1,20 @@
-from abc import abstractmethod
+"""Authenticators"""
 
+from abc import abstractmethod
 from asyncio import Lock, sleep
+
 from aiohttp import ClientSession
 from aiohttp.hdrs import METH_POST
 from aiohttp.web_exceptions import HTTPTooManyRequests
 from yarl import URL
 
-from .models.base import MetisBase
 from .models.auth import MetisAuthCredentialsModel
+from .models.base import MetisBase
 
 
 class BaseAuthenticator(MetisBase):
+    """Base authentication class"""
+
     lock: Lock
 
     def __init__(self):
@@ -18,14 +22,16 @@ class BaseAuthenticator(MetisBase):
 
     @abstractmethod
     async def authenticate(self, session: ClientSession, base_url: URL) -> bool:
-        pass
+        "Run authentication procedure"
 
     @abstractmethod
     async def should_update(self, session: ClientSession, base_url: URL) -> bool:
-        pass
+        "Check if authentication needed"
 
 
 class MetisNoAuth(BaseAuthenticator):
+    """No authentication (noop)"""
+
     async def authenticate(self, *_) -> bool:
         return True
 
@@ -34,6 +40,8 @@ class MetisNoAuth(BaseAuthenticator):
 
 
 class MetisTokenAuth(BaseAuthenticator):
+    """Token based authentication"""
+
     _token: str
 
     def __init__(self, token: str, **kwargs) -> None:
@@ -53,6 +61,8 @@ class MetisTokenAuth(BaseAuthenticator):
 
 
 class MetisLocalUserAuth(BaseAuthenticator):
+    """Password based authentication"""
+
     _endpoint = "v0/auth"
     _credentials: MetisAuthCredentialsModel
 
@@ -71,7 +81,7 @@ class MetisLocalUserAuth(BaseAuthenticator):
         async with session.request(
             METH_POST,
             base_url / self._endpoint,
-            json=self._credentials.to_request(),
+            json=self._credentials.to_dto(),
             raise_for_status=False,
         ) as resp:
             if resp.status == HTTPTooManyRequests.status_code:
