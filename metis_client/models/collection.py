@@ -6,22 +6,6 @@ from typing import Literal, Optional, Sequence, Union
 from .timestamp import MetisTimestampsDTO, MetisTimestampsModel
 from .user import MetisUserOnlyNameEmailDTO, MetisUserOnlyNameEmailModel
 
-MetisCollectionFlavor = Union[
-    Literal["red"],
-    Literal["pink"],
-    Literal["purple"],
-    Literal["indigo"],
-    Literal["blue"],
-    Literal["cyan"],
-    Literal["teal"],
-    Literal["green"],
-    Literal["lime"],
-    Literal["yellow"],
-    Literal["orange"],
-    Literal["brown"],
-    Literal["grey"],
-]
-
 MetisCollectionVisibility = Union[
     Literal["private"], Literal["shared"], Literal["community"]
 ]
@@ -33,7 +17,7 @@ class MetisCollectionTypeDTO(MetisTimestampsDTO):
     id: int
     slug: str
     label: str
-    flavor: MetisCollectionFlavor
+    flavor: str
 
 
 @dataclass(frozen=True)
@@ -43,7 +27,7 @@ class MetisCollectionTypeModel(MetisTimestampsModel):
     id: int
     slug: str
     label: str
-    flavor: MetisCollectionFlavor
+    flavor: str
 
     @classmethod
     def from_dto(cls, dto: MetisCollectionTypeDTO) -> "MetisCollectionTypeModel":
@@ -73,7 +57,7 @@ class MetisCollectionDTO(MetisTimestampsDTO):
     typeId: int
     typeSlug: Optional[str]
     typeLabel: Optional[str]
-    typeFlavor: Optional[MetisCollectionFlavor]
+    typeFlavor: Optional[str]
 
     dataSources: Optional[Sequence[int]]
     users: Optional[Sequence[int]]
@@ -105,7 +89,7 @@ class MetisCollectionModel(MetisTimestampsModel):
             "id": dto.get("typeId"),
             "slug": dto.get("typeSlug") or "",
             "label": dto.get("typeLabel") or "",
-            "flavor": dto.get("typeFlavor") or "red",
+            "flavor": dto.get("typeFlavor") or "",
             "createdAt": None,
             "updatedAt": None,
         }
