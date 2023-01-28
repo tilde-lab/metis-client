@@ -6,7 +6,7 @@ from enum import Enum
 from logging import Logger, getLogger
 from typing import Literal, Union
 
-PROJECT_VERSION = "0.0.1"
+PROJECT_VERSION = "0.0.2"
 PROJECT_NAME = "metis_client"
 
 # This is the default user agent,
