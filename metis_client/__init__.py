@@ -1,3 +1,5 @@
-from .auth import MetisNoAuth, MetisLocalUserAuth, MetisTokenAuth
+"""Metis API client"""
+
+from .auth import MetisLocalUserAuth, MetisNoAuth, MetisTokenAuth
 from .const import PROJECT_VERSION as __version__
 from .metis import MetisAPI

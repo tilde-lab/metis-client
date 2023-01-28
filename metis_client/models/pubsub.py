@@ -1,34 +1,16 @@
+"Stream hub and subscriptions"
+
 from asyncio import Event, Queue, QueueFull
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager
 from types import TracebackType
-from typing import Callable, Set, Type
+from typing import Callable, Optional, Set, Type
 
-from aiohttp_sse_client.client import MessageEvent
+from ..models.event import MetisEvent
 from .base import MetisBase
-from ..const import GenericType
-from ..models.event import (
-    MetisDatasourcesEvent,
-    MetisCalculationsEvent,
-    MetisEvents,
-    MetisPongEvent,
-    MetisErrorEvent,
-    MetisOtherEvent,
-)
-
-
-def cast_event(evt: MessageEvent) -> MetisEvents:
-    for cls in [
-        MetisErrorEvent,
-        MetisPongEvent,
-        MetisDatasourcesEvent,
-        MetisCalculationsEvent,
-    ]:
-        with suppress(TypeError):
-            return cls.from_message_event(evt)
-    return MetisOtherEvent.from_message_event(evt)
 
 
 class MetisHub(MetisBase):
+    "Stream hub"
     _subscriptions: "Set[MetisSubscription]"
 
     def __init__(self) -> None:
@@ -40,53 +22,63 @@ class MetisHub(MetisBase):
 
     @property
     def connected(self) -> bool:
+        "Check if connected event is set"
         return self._connected_event.is_set()
 
     def set_connected(self) -> None:
+        "Set connected event"
         self._connected_event.set()
 
     def set_disconnected(self) -> None:
+        "Clear connected event"
         self._connected_event.clear()
 
     async def wait_connected(self) -> None:
+        "Wait connected event"
         await self._connected_event.wait()
 
     def subscribe(self, subscription: "MetisSubscription") -> None:
+        "Register subscription"
         self._subscriptions.add(subscription)
 
     def unsubscribe(self, subscription: "MetisSubscription") -> None:
+        "Unsubscribe subscription"
         self._subscriptions.discard(subscription)
 
     def unsubscribe_all(self) -> None:
+        "Unsubscribe all subscriptions"
         self._subscriptions.clear()
 
     async def close(self) -> None:
-        subs = [item for item in self._subscriptions]
+        "Close all subscriptions"
+        subs = list(self._subscriptions)
         self.unsubscribe_all()
         for sub in subs:
             await sub.close()
 
-    def publish(self, message: MessageEvent) -> None:
-        evt = cast_event(message)
+    def publish(self, evt: MetisEvent) -> None:
+        "Publish message to subscriptions"
         for sub in self._subscriptions:
             sub.put_nowait(evt)
 
 
 class MetisSubscription(MetisBase):
+    "Message subscription"
     hub: "MetisHub"
-    queue: Queue[MetisEvents]
+    queue: "Queue[MetisEvent]"
 
     def __init__(
         self,
         hub: "MetisHub",
-        predicate: Callable[[MetisEvents], bool] | None = None,
+        predicate: Optional[Callable[[MetisEvent], bool]] = None,
         queue_size: int = 0,
     ) -> None:
         self.hub = hub
         self.queue = Queue(maxsize=queue_size)
         self._predicate = predicate
 
-    def put_nowait(self, message: MetisEvents) -> None:
+    def put_nowait(self, message: MetisEvent) -> None:
+        "Put message to query without wait"
         try:
             if self._predicate is None or self._predicate(message):
                 self.queue.put_nowait(message)
@@ -94,6 +86,7 @@ class MetisSubscription(MetisBase):
             self.logger.warning("Subscription's queue is full")
 
     async def close(self) -> None:
+        "Close subscription and join message queue"
         self.hub.unsubscribe(self)
         await self.queue.join()
 
@@ -107,9 +100,9 @@ class MetisSubscription(MetisBase):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
     ) -> None:
         self.hub.unsubscribe(self)
 
@@ -123,6 +116,6 @@ class MetisSubscription(MetisBase):
         finally:
             self.queue.task_done()
 
-    async def __anext__(self) -> MetisEvents:
+    async def __anext__(self) -> MetisEvent:
         async with self._cm() as msg:
             return msg

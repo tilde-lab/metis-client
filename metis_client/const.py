@@ -1,11 +1,10 @@
 """Constants for metis_client."""
 
 from __future__ import annotations
+
 from enum import Enum
 from logging import Logger, getLogger
-from typing import Literal, TypeVar, Union
-
-GenericType = TypeVar("GenericType")
+from typing import Literal, Union
 
 PROJECT_VERSION = "0.0.1"
 PROJECT_NAME = "metis_client"

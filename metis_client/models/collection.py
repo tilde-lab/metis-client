@@ -1,42 +1,124 @@
+"""Collections models"""
+
 from dataclasses import dataclass
-from datetime import datetime
-from typing import TypedDict, cast
+from typing import Literal, Optional, Sequence, Union
 
-from ..helpers import parse_rfc3339
+from .timestamp import MetisTimestampsDTO, MetisTimestampsModel
+from .user import MetisUserOnlyNameEmailDTO, MetisUserOnlyNameEmailModel
+
+MetisCollectionFlavor = Union[
+    Literal["red"],
+    Literal["pink"],
+    Literal["purple"],
+    Literal["indigo"],
+    Literal["blue"],
+    Literal["cyan"],
+    Literal["teal"],
+    Literal["green"],
+    Literal["lime"],
+    Literal["yellow"],
+    Literal["orange"],
+    Literal["brown"],
+    Literal["grey"],
+]
+
+MetisCollectionVisibility = Union[
+    Literal["private"], Literal["shared"], Literal["community"]
+]
 
 
-class MetisMininalCollectionTypeResponse(TypedDict):
+class MetisCollectionTypeDTO(MetisTimestampsDTO):
+    "Collection type DTO"
+
     id: int
-    slug: str | None
-    label: str | None
-    flavor: str | None
-
-
-class MetisCollectionTypeResponse(MetisMininalCollectionTypeResponse):
-    createdAt: str
-    updatedAt: str
+    slug: str
+    label: str
+    flavor: MetisCollectionFlavor
 
 
 @dataclass(frozen=True)
-class MetisCollectionTypeModel:
+class MetisCollectionTypeModel(MetisTimestampsModel):
+    "Collection type model"
+
     id: int
-    slug: str | None
-    label: str | None
-    flavor: str | None
-    created_at: datetime
-    updated_at: datetime
+    slug: str
+    label: str
+    flavor: MetisCollectionFlavor
 
     @classmethod
-    def from_response(
-        cls, data: MetisCollectionTypeResponse
-    ) -> "MetisCollectionTypeModel":
+    def from_dto(cls, dto: MetisCollectionTypeDTO) -> "MetisCollectionTypeModel":
+        "Create model from DTO"
+        tsm = MetisTimestampsModel.from_dto(dto)
         return cls(
-            id=cast(int, data.get("id")),
-            slug=data.get("slug"),
-            label=data.get("label"),
-            flavor=data.get("flavor"),
-            created_at=parse_rfc3339(data.get("createdAt"))
-            or datetime.fromtimestamp(0),
-            updated_at=parse_rfc3339(data.get("updatedAt"))
-            or datetime.fromtimestamp(0),
+            id=dto["id"],
+            slug=dto.get("slug"),
+            label=dto.get("label"),
+            flavor=dto.get("flavor"),
+            created_at=tsm.created_at,
+            updated_at=tsm.updated_at,
+        )
+
+
+class MetisCollectionDTO(MetisTimestampsDTO):
+    "Collection DTO"
+
+    id: int
+    title: str
+    description: str
+    visibility: MetisCollectionVisibility
+
+    userId: int
+    userFirstName: Optional[str]
+    userLastName: Optional[str]
+    typeId: int
+    typeSlug: Optional[str]
+    typeLabel: Optional[str]
+    typeFlavor: Optional[MetisCollectionFlavor]
+
+    dataSources: Optional[Sequence[int]]
+    users: Optional[Sequence[int]]
+
+
+@dataclass(frozen=True)
+class MetisCollectionModel(MetisTimestampsModel):
+    "Collection model"
+
+    id: int
+    title: str
+    description: str
+    visibility: MetisCollectionVisibility
+    user: MetisUserOnlyNameEmailModel
+    type: MetisCollectionTypeModel
+    data_sources: Sequence[int]
+    users: Sequence[int]
+
+    @classmethod
+    def from_dto(cls, dto: MetisCollectionDTO) -> "MetisCollectionModel":
+        "Create model from DTO"
+        user_dto: MetisUserOnlyNameEmailDTO = {
+            "id": dto.get("userId"),
+            "firstName": dto.get("firstName"),
+            "lastName": dto.get("lastName"),
+            "email": dto.get("userEmail"),
+        }
+        type_dto: MetisCollectionTypeDTO = {
+            "id": dto.get("typeId"),
+            "slug": dto.get("typeSlug") or "",
+            "label": dto.get("typeLabel") or "",
+            "flavor": dto.get("typeFlavor") or "red",
+            "createdAt": None,
+            "updatedAt": None,
+        }
+        tsm = MetisTimestampsModel.from_dto(dto)
+        return cls(
+            id=dto.get("id"),
+            title=dto.get("title"),
+            description=dto.get("description"),
+            visibility=dto.get("visibility"),
+            user=MetisUserOnlyNameEmailModel.from_dto(user_dto),
+            type=MetisCollectionTypeModel.from_dto(type_dto),
+            data_sources=dto.get("dataSources") or [],
+            users=dto.get("users") or [],
+            created_at=tsm.created_at,
+            updated_at=tsm.updated_at,
         )

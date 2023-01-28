@@ -1,27 +1,31 @@
+"""Base of all namespaces"""
+
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from yarl import URL
 
-from ..models.base import MetisBase
 from ..client import MetisClient
+from ..models.base import MetisBase
 
 if TYPE_CHECKING:
     from .root import MetisRootNamespace
 
-class BaseNamespace(MetisBase):
+
+class BaseNamespace(MetisBase):  # pylint: disable=too-few-public-methods
     """Used for the Metis API namespace."""
 
     _base_url: URL
     _client: MetisClient
     _auth_required: bool = True
-    _root: "MetisRootNamespace"
+    _root: MetisRootNamespace
 
     def __init__(
         self,
         client: MetisClient,
         base_url: URL,
-        root: "MetisRootNamespace",
+        root: MetisRootNamespace,
         auth_req: bool = True,
     ) -> None:
         """Initialise the namespace."""

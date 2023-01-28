@@ -1,15 +1,20 @@
+"""Stream endpoint namespace"""
+
 from asyncio import Event, Task, create_task, sleep
-from typing import Callable
+from typing import Callable, Optional
 
 from aiohttp_sse_client.client import MessageEvent
 
-from .base import BaseNamespace
+from ..models.event import MetisEvent, MetisMessageEvent, cast_event
 from ..models.pubsub import MetisHub, MetisSubscription
+from .base import BaseNamespace
 
 
 class MetisStreamNamespace(BaseNamespace):
+    """Stream endpoints namespace"""
+
     _hub: MetisHub
-    _stream_task: Task | None = None
+    _stream_task: Optional[Task] = None
     _subscribe_event: Event
 
     def __post_init__(self) -> None:
@@ -19,14 +24,15 @@ class MetisStreamNamespace(BaseNamespace):
         return super().__post_init__()
 
     async def _stream_consumer(self):
-        sse_task: Task | None = None
+        sse_task: Optional[Task] = None
 
         def on_open():
             self._hub.set_connected()
 
         def on_message(evt: MessageEvent):
             self._hub.set_connected()
-            self._hub.publish(evt)
+            evt_dto = MetisMessageEvent.from_dto(evt).to_dto()
+            self._hub.publish(cast_event(evt_dto))
             # cancel streaming task if no subscribers
             if sse_task and len(self._hub) == 0:
                 self._hub.set_disconnected()
@@ -44,9 +50,11 @@ class MetisStreamNamespace(BaseNamespace):
                 await self._root.v0.ping()
 
     def close(self):
+        "Close background stream consumer"
         if self._stream_task:
             self._stream_task.cancel()
 
-    def subscribe(self, predicate: Callable[[MessageEvent], bool] | None = None):
+    def subscribe(self, predicate: Optional[Callable[[MetisEvent], bool]] = None):
+        "Subscribe to stream"
         self._subscribe_event.set()
         return MetisSubscription(self._hub, predicate=predicate)
