@@ -70,7 +70,7 @@ class MetisLocalUserAuth(BaseAuthenticator):
         super().__init__(**kwargs)
         self._credentials = MetisAuthCredentialsModel(email, password)
         self.logger.warning(
-            "Please, don't use password based authentication - it's for testing only"
+            "Please, do NOT use password-based authentication, it is for testing only"
         )
 
     @classmethod

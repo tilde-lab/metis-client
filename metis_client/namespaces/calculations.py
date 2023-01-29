@@ -7,12 +7,12 @@ from .base import BaseNamespace
 class MetisCalculationsNamespace(BaseNamespace):
     """Calculations endpoints namespace"""
 
-    async def create(self, data_id: int):
+    async def create(self, data_id: int, engine: str = "dummy"):
         "Create calculation"
         async with await self._client.request(
             method="POST",
             url=self._base_url,
-            json={"dataId": data_id},
+            json={"dataId": data_id, "engine": engine},
             auth_required=True,
         ) as resp:
             result = await resp.json()
