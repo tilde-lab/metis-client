@@ -3,6 +3,7 @@
 from .auth import MetisAuthNamespace
 from .base import BaseNamespace
 from .calculations import MetisCalculationsNamespace
+from .collections import MetisCollectionsNamespace
 from .datasources import MetisDatasourcesNamespace
 
 
@@ -15,6 +16,9 @@ class MetisV0Namespace(BaseNamespace):
         )
         self.__ns_calculations = MetisCalculationsNamespace(
             self._client, self._base_url / "calculations", root=self._root
+        )
+        self.__ns_collections = MetisCollectionsNamespace(
+            self._client, self._base_url / "collections", root=self._root
         )
         self.__ns_datasources = MetisDatasourcesNamespace(
             self._client, self._base_url / "datasources", root=self._root
@@ -33,6 +37,11 @@ class MetisV0Namespace(BaseNamespace):
     def calculations(self) -> MetisCalculationsNamespace:
         "Property to access the calculations namespace."
         return self.__ns_calculations
+
+    @property
+    def collections(self) -> MetisCollectionsNamespace:
+        "Property to access the collections namespace."
+        return self.__ns_collections
 
     @property
     def datasources(self) -> MetisDatasourcesNamespace:

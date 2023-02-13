@@ -52,10 +52,6 @@ class MetisTokenAuth(BaseAuthenticator):
         session.headers["Authorization"] = f"Bearer {self._token}"
         return True
 
-    @classmethod
-    def _get_cookie(cls, session: ClientSession, base_url: URL):
-        return session.cookie_jar.filter_cookies(base_url).get("_sid")
-
     async def should_update(self, *_) -> bool:
         return True
 

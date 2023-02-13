@@ -1,7 +1,8 @@
 "Base response model"
 
 from dataclasses import dataclass
-from typing import TypedDict
+
+from typing_extensions import TypedDict
 
 
 class MetisRequestIdDTO(TypedDict):
@@ -17,4 +18,4 @@ class MetisRequestIdModel:
     @classmethod
     def from_dto(cls, data: MetisRequestIdDTO) -> "MetisRequestIdModel":
         "Create model from response"
-        return cls(request_id=data.get("reqId"))
+        return cls(request_id=data["reqId"])

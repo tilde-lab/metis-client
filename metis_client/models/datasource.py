@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Sequence
 
+from typing_extensions import TypedDict
+
 from .collection import MetisCollectionDTO, MetisCollectionModel
 from .timestamp import MetisTimestampsDTO, MetisTimestampsModel
 from .user import MetisUserOnlyNameEmailDTO, MetisUserOnlyNameEmailModel
@@ -21,6 +23,11 @@ class MetisDataSourceDTO(MetisTimestampsDTO):
     type: int
     collections: Sequence[MetisCollectionDTO]
     progress: int
+
+
+class MetisDataSourceContentOnlyDTO(TypedDict):
+    "Data source content only DTO"
+    content: str
 
 
 @dataclass(frozen=True)
@@ -58,3 +65,17 @@ class MetisDataSourceModel(MetisTimestampsModel):
             created_at=tsm.created_at,
             updated_at=tsm.updated_at,
         )
+
+
+@dataclass(frozen=True)
+class MetisDataSourceContentOnlyModel:
+    "Data source content only model"
+
+    content: str
+
+    @classmethod
+    def from_dto(
+        cls, dto: MetisDataSourceContentOnlyDTO
+    ) -> "MetisDataSourceContentOnlyModel":
+        "Create model from DTO"
+        return cls(content=dto.get("content"))

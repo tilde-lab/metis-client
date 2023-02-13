@@ -1,7 +1,8 @@
 """Authentication models"""
 
 from dataclasses import asdict, dataclass
-from typing import TypedDict
+
+from typing_extensions import TypedDict
 
 
 class MetisAuthCredentialsRequestDTO(TypedDict):

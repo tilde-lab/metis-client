@@ -1,7 +1,9 @@
 """Engine model"""
 
 from dataclasses import dataclass
-from typing import Any, Optional, TypedDict
+from typing import Any, Optional
+
+from typing_extensions import TypedDict
 
 
 class MetisEngineDTO(TypedDict):

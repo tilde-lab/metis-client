@@ -1,7 +1,9 @@
 """Error models"""
 
 from dataclasses import dataclass
-from typing import TypedDict, Union
+from typing import Union
+
+from typing_extensions import TypedDict
 
 
 class MetisErrorErrorDTO(TypedDict):
