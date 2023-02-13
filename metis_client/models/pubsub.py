@@ -3,10 +3,26 @@
 from asyncio import Event, Queue, QueueFull
 from contextlib import asynccontextmanager
 from types import TracebackType
-from typing import Callable, Optional, Set, Type
+from typing import Awaitable, Callable, Optional, Set, Type
+
 
 from ..models.event import MetisEvent
+from ..models.resp import MetisRequestIdModel
 from .base import MetisBase
+
+SubscribeCallable = Callable[[], "MetisSubscription"]
+RequestIdCallable = Callable[[], Awaitable[MetisRequestIdModel]]
+
+
+async def act_and_get_result_from_stream(
+    sub_func: SubscribeCallable, func: RequestIdCallable
+):
+    "Do a request and get response from stream"
+    async with sub_func() as sub:
+        resp = await func()
+        async for msg in sub:
+            if getattr(msg, "request_id", None) == resp.request_id:
+                return msg
 
 
 class MetisHub(MetisBase):

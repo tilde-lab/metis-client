@@ -2,15 +2,16 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, TypedDict
+
+from typing_extensions import NotRequired, TypedDict
 
 from ..helpers import parse_rfc3339
 
 
 class MetisTimestampsDTO(TypedDict):
     "Response with timestamps"
-    createdAt: Optional[str]
-    updatedAt: Optional[str]
+    createdAt: NotRequired[str]
+    updatedAt: NotRequired[str]
 
 
 @dataclass(frozen=True)

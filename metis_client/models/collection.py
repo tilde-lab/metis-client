@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Literal, Optional, Sequence, Union
 
+from typing_extensions import TypedDict
+
 from .timestamp import MetisTimestampsDTO, MetisTimestampsModel
 from .user import MetisUserOnlyNameEmailDTO, MetisUserOnlyNameEmailModel
 
@@ -43,24 +45,34 @@ class MetisCollectionTypeModel(MetisTimestampsModel):
         )
 
 
-class MetisCollectionDTO(MetisTimestampsDTO):
+class MetisCollectionCommonDTO(TypedDict):
+    "Common fields of collection's DTOs"
+
+    title: str
+    typeId: int
+    dataSources: Optional[Sequence[int]]
+    users: Optional[Sequence[int]]
+
+
+class MetisCollectionCreateDTO(MetisCollectionCommonDTO):
+    "Collection create DTO"
+
+    description: Optional[str]
+
+
+class MetisCollectionDTO(MetisCollectionCommonDTO, MetisTimestampsDTO):
     "Collection DTO"
 
     id: int
-    title: str
     description: str
     visibility: MetisCollectionVisibility
 
     userId: int
     userFirstName: Optional[str]
     userLastName: Optional[str]
-    typeId: int
     typeSlug: Optional[str]
     typeLabel: Optional[str]
     typeFlavor: Optional[str]
-
-    dataSources: Optional[Sequence[int]]
-    users: Optional[Sequence[int]]
 
 
 @dataclass(frozen=True)

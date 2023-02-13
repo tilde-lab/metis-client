@@ -1,7 +1,9 @@
 """User models"""
 
 from dataclasses import dataclass
-from typing import Dict, Optional, TypedDict
+from typing import Dict, Optional
+
+from typing_extensions import TypedDict
 
 from .timestamp import MetisTimestampsDTO
 

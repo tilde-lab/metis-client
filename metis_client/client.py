@@ -4,7 +4,6 @@ from asyncio import CancelledError, TimeoutError as AsyncioTimeoutError, sleep
 from concurrent.futures import TimeoutError as FuturesTimeoutError
 from contextlib import suppress
 from datetime import timedelta
-from functools import partial
 from typing import Any, Callable, Dict, Mapping, Optional, Union
 
 import aiohttp
@@ -26,6 +25,7 @@ from aiohttp.web_exceptions import (
     HTTPUnauthorized,
 )
 from aiohttp_sse_client import client as sse_client
+from typing_extensions import NotRequired, TypedDict, Unpack
 from yarl import URL
 
 from .auth import BaseAuthenticator, MetisNoAuth
@@ -40,6 +40,17 @@ from .exc import (
     MetisQuotaException,
 )
 from .models.base import MetisBase
+
+
+class ClientRequestKwargs(TypedDict):
+    "MetisClient.create kwargs"
+    json: NotRequired[Any]
+    data: NotRequired[Union[str, bytes]]
+    headers: NotRequired[Mapping[str, Any]]
+    method: NotRequired[HttpMethods]
+    params: NotRequired[Dict[str, Any]]
+    timeout: NotRequired[int]
+    auth_required: NotRequired[bool]
 
 
 class MetisClient(MetisBase):
@@ -101,40 +112,27 @@ class MetisClient(MetisBase):
             else str(body or fallback_msg),
         )
 
-    # pylint: disable=too-many-arguments
     async def _request(
-        self,
-        url: URL,
-        json: Optional[Any] = None,
-        data: Union[str, bytes, None] = None,
-        headers: Optional[Mapping[str, Any]] = None,
-        method: HttpMethods = "GET",
-        params: Optional[Dict[str, Any]] = None,
-        timeout: Optional[int] = None,
-        auth_required: bool = False,
-        **_,
+        self, url: URL, **opts: Unpack[ClientRequestKwargs]
     ) -> ClientResponse:
         """
         Makes an HTTP request to the specified endpoint using the specified parameters.
         """
-        do_req = partial(
-            self._session.request,
-            method,
-            url,
-            params=params,
-            timeout=timeout,
-            headers=headers,
-            json=json,
-            data=data,
-            raise_for_status=False,
-        )
+        method = opts.get("method", "GET")
+        auth_required = opts.get("auth_required", False)
+        aio_opts = {
+            k: v
+            for k, v in opts.items()
+            if k in ["params", "timeout", "headers", "json", "data"]
+        }
+        aio_opts["raise_for_status"] = False
 
         # preauthenticate
         if auth_required:
             await self._do_auth()
 
         try:
-            result = await do_req()
+            result = await self._session.request(method, url, **aio_opts)
 
             # redo if failed because of auth
             if result.status == HTTPUnauthorized.status_code:
@@ -142,14 +140,12 @@ class MetisClient(MetisBase):
                 # normal auth (only if needed) for all other
                 await self._do_auth(force=not self._auth.lock.locked())
                 result.close()
-                result = await do_req()
+                result = await self._session.request(method, url, **aio_opts)
             # rate limit - redo all
             if result.status == HTTPTooManyRequests.status_code:
                 await sleep(10)
                 result.close()
-                return await self._request(
-                    url, json, data, headers, method, params, timeout, auth_required
-                )
+                return await self._request(url, **opts)
 
         except (
             CancelledError,
@@ -163,7 +159,7 @@ class MetisClient(MetisBase):
 
         except (TimeoutError, AsyncioTimeoutError, FuturesTimeoutError):
             raise MetisConnectionException(
-                f"Timeout of {timeout} reached while waiting for {str(url)}"
+                f"Timeout of {opts.get('timeout')} reached while waiting for {str(url)}"
             ) from None
 
         except BaseException as exc:
@@ -199,14 +195,7 @@ class MetisClient(MetisBase):
     def request(
         self,
         url: URL,
-        json: Optional[Any] = None,
-        data: Union[str, bytes, None] = None,
-        headers: Optional[Mapping[str, Any]] = None,
-        method: HttpMethods = "GET",
-        params: Optional[Dict[str, Any]] = None,
-        timeout: Optional[int] = None,
-        auth_required: bool = False,
-        **_,
+        **opts: Unpack[ClientRequestKwargs],
     ) -> _RequestContextManager:
         """
         Makes an HTTP request to the specified endpoint using the specified parameters.
@@ -227,11 +216,7 @@ class MetisClient(MetisBase):
         Returns:
         A `aiohttp.client._RequestContextManager` object representing the API response
         """
-        return _RequestContextManager(
-            self._request(
-                url, json, data, headers, method, params, timeout, auth_required
-            )
-        )
+        return _RequestContextManager(self._request(url, **opts))
 
     def _parse_sse_error(self, error: str) -> Optional[int]:
         """
