@@ -1,22 +1,31 @@
 """Main Metis API async client"""
 
+import sys
 from types import TracebackType
-from typing import List, Optional, Type
+from typing import Optional, Type
 
 import aiohttp
 from aiohttp import ClientSession, ClientTimeout, TraceConfig
 from aiohttp.hdrs import USER_AGENT
 from aiohttp.typedefs import LooseHeaders, StrOrURL
-from typing_extensions import NotRequired, TypedDict, Unpack
 from yarl import URL
 
-from .auth import BaseAuthenticator
 from .client import MetisClient
 from .const import DEFAULT_USER_AGENT
-from .models.base import MetisBase
+from .models import BaseAuthenticator, MetisBase
 from .namespaces.root import MetisRootNamespace
 from .namespaces.stream import MetisStreamNamespace
 from .namespaces.v0 import MetisV0Namespace
+
+if sys.version_info < (3, 9):  # pragma: no cover
+    from typing import List
+else:  # pragma: no cover
+    List = list
+
+if sys.version_info < (3, 11):  # pragma: no cover
+    from typing_extensions import NotRequired, TypedDict, Unpack
+else:  # pragma: no cover
+    from typing import NotRequired, TypedDict, Unpack
 
 
 class MetisAPIKwargs(TypedDict):
@@ -78,6 +87,8 @@ class MetisAPIAsync(MetisBase):
         self._session = session
 
         base_url = URL(base_url)
+        if not base_url.is_absolute():
+            raise TypeError("Base URL should be absolute")
         client = MetisClient(session, base_url, opts["auth"])
         self._ns_root = MetisRootNamespace(client, base_url)
 
@@ -107,4 +118,4 @@ class MetisAPIAsync(MetisBase):
         "Close stream and http session"
         self.stream.close()
         if self._session and self._close_session:
-            return await self._session.close()
+            await self._session.close()

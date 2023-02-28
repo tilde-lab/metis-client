@@ -12,7 +12,8 @@ This library allows for programmatic interactions with the [Metis infrastructure
 
 ## Usage
 
-There are two client flavors - asyncronous `asyncio` client and simplified synchronous client.
+There are two client flavors - asyncronous `asyncio` client
+and simplified synchronous client.
 
 ### Asynchronous client
 
@@ -25,7 +26,7 @@ async def main():
     async with MetisAPIAsync(API_URL, auth=MetisTokenAuth("admin@test.com")) as client:
         print(await client.v0.auth.whoami())
         data = await client.v0.datasources.create(content)
-        calc = await client.v0.calculations.create(data.id)
+        calc = await client.v0.calculations.create(data["id"])
         print(calc)
 
         # There is also a low level interface
@@ -33,20 +34,27 @@ async def main():
         async with client.stream.subscribe() as sub:
             req = await client.v0.datasources.create_event(content)
             async for msg in sub:
-                if (
-                    MetisDataSourcesEventModel.guard(msg)
-                    and msg.request_id == req.request_id
-                ):
-                    answer = msg
+                if msg["type"] == "datasources" and msg.get("data", {}).get(
+                    "reqId"
+                ) == req.get("reqId"):
+                    answer = msg.get("data")
                     break
-            data_id = sorted(answer.data, key=lambda x: x.created_at)[-1].id
+            if not answer:
+                return None
+
+            data_id = sorted(
+                answer.get("data", []),
+                key=lambda x: x.get("createdAt", datetime.fromordinal(1)),
+            )[-1].get("id")
             req = await client.v0.calculations.create_event(data_id)
+            answer = None
             async for msg in sub:
-                if (
-                    MetisCalculationsEventModel.guard(msg)
-                    and msg.request_id == req.request_id
-                ):
-                    answer = msg
+                if msg["type"] == "calculations" and msg.get("data", {}).get(
+                    "reqId"
+                ) == req.get("reqId"):
+                    data = msg.get("data", {}).get("data", [])
+                    if data:
+                        answer = data[-1]
                     break
             print(answer)
 ```
@@ -62,7 +70,7 @@ from metis_client import MetisAPI, MetisTokenAuth
 
 client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
 data = client.v0.datasources.create(content)
-calc = client.v0.calculations.create(data.id)
+calc = client.v0.calculations.create(data.get("id"))
 print(calc)
 ```
 

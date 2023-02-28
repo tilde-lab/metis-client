@@ -1,15 +1,25 @@
 """Metis API synchronous client"""
 
+import sys
 from functools import partial
-from typing import Any, Awaitable, Callable, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from aiohttp.typedefs import StrOrURL
 from asgiref.sync import async_to_sync
-from typing_extensions import Concatenate, ParamSpec, Unpack
 
 from .metis_async import MetisAPIAsync, MetisAPIKwargs
 from .models.base import MetisBase
 from .namespaces.collections import MetisCollectionsCreateKwargs
+
+if sys.version_info < (3, 9):  # pragma: no cover
+    from typing import Awaitable, Callable
+else:  # pragma: no cover
+    from collections.abc import Awaitable, Callable
+
+if sys.version_info < (3, 11):  # pragma: no cover
+    from typing_extensions import Concatenate, ParamSpec, Unpack
+else:  # pragma: no cover
+    from typing import Concatenate, ParamSpec, Unpack
 
 AsyncClientGetter = Callable[[], MetisAPIAsync]
 ReturnT_co = TypeVar("ReturnT_co", covariant=True)
