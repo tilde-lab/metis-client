@@ -35,10 +35,10 @@ jobs:
           pip install .[lint]
 
       - name: Autoflake
-        run: autoflake -c -r metis_client
+        run: autoflake -c -r metis_client tests
 
       - name: Black
-        run: black --check --diff metis_client
+        run: black --check --diff metis_client tests
 
       - name: pyupgrade
         run: |
@@ -53,4 +53,4 @@ jobs:
           flake8 --extend-ignore=F401
 
       - name: pylint
-        run: pylint metis_client
+        run: pylint metis_client tests
