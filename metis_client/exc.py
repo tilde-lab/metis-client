@@ -3,8 +3,6 @@
 
 from typing import Optional
 
-from aiohttp import ClientResponseError
-
 
 class MetisException(BaseException):
     """
@@ -14,36 +12,42 @@ class MetisException(BaseException):
     you should catch this base exception.
     """
 
-    error: Optional[str]
-
-    def __init__(self, *args, error: Optional[str] = None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.error = error
-
 
 class MetisConnectionException(MetisException):
     """This is raised when there is a connection issue with Metis."""
 
 
-class MetisHttpResponseError(MetisException, ClientResponseError):
-    """Base for all HTTP errors"""
+class MetisError(MetisException):
+    """Base of all errors based on results"""
+
+    status: int = 0
+    message: Optional[str]
+
+    def __init__(
+        self, *args, status: Optional[int], message: Optional[str] = None, **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        if status:
+            self.status = status
+        if message:
+            self.message = message
 
 
-class MetisNotFoundException(MetisHttpResponseError):
+class MetisNotFoundException(MetisError):
     """This is raised when the requested resource is not found."""
 
 
-class MetisPayloadException(MetisHttpResponseError):
+class MetisPayloadException(MetisError):
     """This is raised when the payload is invalid."""
 
 
-class MetisPermissionException(MetisHttpResponseError):
+class MetisPermissionException(MetisError):
     """This is raised when the user has no permission to do the requested resource."""
 
 
-class MetisAuthenticationException(MetisHttpResponseError):
+class MetisAuthenticationException(MetisError):
     """This is raised when we recieve an authentication issue."""
 
 
-class MetisQuotaException(MetisHttpResponseError):
+class MetisQuotaException(MetisError):
     """This is raised when quota excided."""

@@ -9,7 +9,7 @@ from yarl import URL
 from ..client import MetisClient
 from ..models.base import MetisBase
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .root import MetisRootNamespace
 
 

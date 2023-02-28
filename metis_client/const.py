@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from enum import Enum
 from logging import Logger, getLogger
 from typing import Literal, Union
 
-PROJECT_VERSION = "0.0.2"
+PROJECT_VERSION = "0.0.3"
 PROJECT_NAME = "metis_client"
 
 # This is the default user agent,
@@ -27,16 +26,3 @@ HttpMethods = Union[
     Literal["PUT"],
     Literal["TRACE"],
 ]
-
-
-class HttpContentType(str, Enum):
-    """HTTP Content Types."""
-
-    BASE_JSON = "application/json"
-
-    JSON = "application/json;charset=utf-8"
-    TEXT_PLAIN = "text/plain;charset=utf-8"
-    TEXT_HTML = "text/html;charset=utf-8"
-    TEXT_EVENT_STREAM = "text/event-stream"
-
-    UNKNOWN = "UNKNOWN"

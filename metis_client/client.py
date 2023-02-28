@@ -1,45 +1,44 @@
 """Low level http and SSE client"""
 
+import sys
 from asyncio import CancelledError, TimeoutError as AsyncioTimeoutError, sleep
 from concurrent.futures import TimeoutError as FuturesTimeoutError
-from contextlib import suppress
 from datetime import timedelta
-from typing import Any, Callable, Dict, Mapping, Optional, Union
+from json import JSONDecodeError
+from typing import Any, Optional, Union
 
 import aiohttp
-from aiohttp import ClientResponse, ClientTimeout
+from aiohttp import ClientResponse, ClientTimeout, RequestInfo
 from aiohttp.client import _RequestContextManager
 from aiohttp.client_exceptions import (
     ClientConnectionError,
     ClientPayloadError,
-    InvalidURL,
+    ClientResponseError,
 )
 from aiohttp.web_exceptions import (
-    HTTPBadRequest,
-    HTTPForbidden,
     HTTPInternalServerError,
-    HTTPMisdirectedRequest,
-    HTTPNotFound,
-    HTTPPaymentRequired,
     HTTPTooManyRequests,
     HTTPUnauthorized,
 )
 from aiohttp_sse_client import client as sse_client
-from typing_extensions import NotRequired, TypedDict, Unpack
 from yarl import URL
 
-from .auth import BaseAuthenticator, MetisNoAuth
-from .const import HttpContentType, HttpMethods
-from .exc import (
-    MetisAuthenticationException,
-    MetisConnectionException,
-    MetisException,
-    MetisHttpResponseError,
-    MetisNotFoundException,
-    MetisPayloadException,
-    MetisQuotaException,
-)
-from .models.base import MetisBase
+from .const import HttpMethods
+from .exc import MetisConnectionException, MetisException
+from .helpers import http_to_metis_error_map
+from .models import BaseAuthenticator, MetisBase, MetisNoAuth
+
+if sys.version_info < (3, 9):  # pragma: no cover
+    from typing import Callable, Dict, Mapping
+else:  # pragma: no cover
+    from collections.abc import Callable, Mapping
+
+    Dict = dict
+
+if sys.version_info < (3, 11):  # pragma: no cover
+    from typing_extensions import NotRequired, TypedDict, Unpack
+else:  # pragma: no cover
+    from typing import NotRequired, TypedDict, Unpack
 
 
 class ClientRequestKwargs(TypedDict):
@@ -49,7 +48,7 @@ class ClientRequestKwargs(TypedDict):
     headers: NotRequired[Mapping[str, Any]]
     method: NotRequired[HttpMethods]
     params: NotRequired[Dict[str, Any]]
-    timeout: NotRequired[int]
+    timeout: NotRequired[float]
     auth_required: NotRequired[bool]
 
 
@@ -77,7 +76,17 @@ class MetisClient(MetisBase):
         """
         self._session = session
         self._auth = auth or MetisNoAuth()
+        if not base_url.is_absolute():
+            raise TypeError("Base URL should be absolute")
         self._base_url = base_url
+
+    def _url_rel_to_abs(self, url: URL) -> URL:
+        "If url is relative, join it with base url, else return as is"
+        if url.is_absolute():
+            return url
+        if url.path.startswith("/"):
+            return self._base_url.join(url)
+        return (self._base_url / url.path).with_query(url.query)
 
     async def _do_auth(self, force: bool = False) -> None:
         async with self._auth.lock:
@@ -85,31 +94,15 @@ class MetisClient(MetisBase):
                 await self._auth.authenticate(self._session, self._base_url)
 
     @staticmethod
-    def _response_raise_for_status(result: ClientResponse, body: Any) -> None:
-        if result.ok:
+    def _raise_for_status(
+        status: int, req_info: RequestInfo, msg: Optional[str] = None
+    ) -> None:
+        if status < 400:
             return
-        status = result.status
-        msg = f"Response exception for {str(result.url)!r} with code {status}: {body}"
-        proto_err = MetisHttpResponseError
-        if status in (HTTPForbidden.status_code, HTTPUnauthorized.status_code):
-            proto_err = MetisAuthenticationException
-        if status == HTTPNotFound.status_code:
-            proto_err = MetisNotFoundException
-        if status == HTTPBadRequest.status_code:
-            proto_err = MetisPayloadException
-        if status == HTTPPaymentRequired.status_code:
-            proto_err = MetisQuotaException
-        if status == HTTPMisdirectedRequest.status_code:
-            proto_err = MetisHttpResponseError
-        fallback_msg = "Error message is not provided"
-        raise proto_err(
-            result.request_info,
-            history=(result,),
-            message=msg,
-            status=result.status,
-            error=body.get("error", fallback_msg)
-            if isinstance(body, dict)
-            else str(body or fallback_msg),
+        msg = f"Response exception for {req_info.url!s} with code {status}: {msg!s}"
+        proto_err = http_to_metis_error_map(status)
+        raise proto_err(status=status, message=msg) from ClientResponseError(
+            req_info, message=msg, status=status, history=()
         )
 
     async def _request(
@@ -118,6 +111,7 @@ class MetisClient(MetisBase):
         """
         Makes an HTTP request to the specified endpoint using the specified parameters.
         """
+        url = self._url_rel_to_abs(url)
         method = opts.get("method", "GET")
         auth_required = opts.get("auth_required", False)
         aio_opts = {
@@ -147,12 +141,7 @@ class MetisClient(MetisBase):
                 result.close()
                 return await self._request(url, **opts)
 
-        except (
-            CancelledError,
-            ClientConnectionError,
-            ClientPayloadError,
-            InvalidURL,
-        ) as exc:
+        except (CancelledError, ClientConnectionError) as exc:
             raise MetisConnectionException(
                 f"Request exception for {str(url)!r} with - {exc}"
             ) from exc
@@ -162,32 +151,34 @@ class MetisClient(MetisBase):
                 f"Timeout of {opts.get('timeout')} reached while waiting for {str(url)}"
             ) from None
 
-        except BaseException as exc:
+        except BaseException as exc:  # pragma: no cover
             raise MetisException(
                 f"Unexpected exception for {str(url)!r} with - {exc}"
             ) from exc
 
+        msg = None
         try:
             body = None
-            if result.content_type in (HttpContentType.BASE_JSON, HttpContentType):
+            if result.content_type.startswith("application/json"):
                 body = await result.json(
                     encoding="utf-8", content_type=result.content_type
                 )
-            elif result.content_type in (
-                HttpContentType.TEXT_HTML,
-                HttpContentType.TEXT_PLAIN,
-            ):
-                body = await result.text("utf-8")
-                body = body[:100]
+                if isinstance(body, dict) and body.get("error", None):
+                    msg = str(body.get("error"))
+            elif result.content_type.startswith("text/"):
+                msg = await result.text("utf-8")
             else:
-                body = await result.read()
-                body = body[:100]
-        except BaseException as exc:
+                msg = str(await result.read())
+        except (ClientPayloadError, JSONDecodeError) as exc:
+            raise MetisException(
+                f"Broken payload data from {str(url)!r}: {exc}"
+            ) from exc
+        except BaseException as exc:  # pragma: no cover
             raise MetisException(
                 f"Could not handle response data from {str(url)!r} with - {exc}"
             ) from exc
 
-        self._response_raise_for_status(result, body)
+        self._raise_for_status(result.status, result.request_info, msg)
 
         return result
 
@@ -218,108 +209,78 @@ class MetisClient(MetisBase):
         """
         return _RequestContextManager(self._request(url, **opts))
 
-    def _parse_sse_error(self, error: str) -> Optional[int]:
-        """
-        Helper function to parse the error code from a SSE exception
-        Error message format is 'fetch {} failed: {}'.format(url, status)
-        """
-        with suppress(ValueError):
-            return int(error.split(": ")[-1])
-
     async def sse(
         self,
         url: URL,
         on_message: Callable[[sse_client.MessageEvent], None],
-        on_open: Callable[[], None],
+        on_open: Optional[Callable[[], None]] = None,
         params: Optional[Dict[str, Any]] = None,
+        timeout: Optional[float] = None,
     ) -> None:
         """
         Creates `aiohttp_sse_client.client.EventSource` object with sensible defaults.
         **Arguments**:
-        -  `url` (Required): The API endpoint to connect.
-        -  `on_message` (Required): Message callback
-        -  `on_open` (Required): Callback when connected
+        - `url` (Required): The API endpoint to connect.
+        - `on_message`: Message callback
         **Optional arguments**:
+        - `on_open`: Callback when connected
         - `params`: The query parameters to include in the request.
            Can be a dictionary or None.
+        - `timeout`: Stream timeout, None for infinity
         Returns: None
         """
+        url = self._url_rel_to_abs(url)
         original_backoff = 0.1
         backoff = original_backoff
 
-        timeout = ClientTimeout(total=None, sock_connect=600, sock_read=None)
+        es_timeout = ClientTimeout(total=timeout, sock_connect=600, sock_read=None)
         while True:
             try:
+                if backoff > original_backoff:
+                    await sleep(backoff)
                 await self._do_auth()
                 async with sse_client.EventSource(
                     str(url),
                     reconnection_time=timedelta(seconds=original_backoff),
+                    max_connect_retry=0,
                     on_open=on_open,
                     session=self._session,
                     params=params,
-                    timeout=timeout,
+                    timeout=es_timeout,
                     read_bufsize=2**19,
-                    raise_for_status=False,
+                    raise_for_status=True,
                 ) as evt_src:
                     backoff = original_backoff
                     async for evt in evt_src:
                         on_message(evt)
 
-            except CancelledError:
-                # task is cancelled - abort
-                break
-
-            except ClientConnectionError as err:
-                backoff *= 2
-                self.logger.warning(
-                    "%s connection error %s - reconnecting in %s seconds",
-                    self._base_url,
-                    err,
-                    backoff,
-                )
-                await sleep(backoff)
-                continue
-
-            except ConnectionRefusedError as err:
-                status = self._parse_sse_error(err.args[0])
-                if status == HTTPUnauthorized.status_code:
-                    self.logger.info(
-                        "%s - authentication requered - reconnecting after reauth",
-                        self._base_url,
-                    )
-                    await self._do_auth(force=True)
-                    continue
-                raise
-
-            except ConnectionAbortedError as err:
-                self.logger.error("%s connection error %s - abort", self._base_url, err)
-                break
-
-            except ConnectionError as err:
-                status = self._parse_sse_error(err.args[0])
-                if status and (
-                    status == HTTPTooManyRequests.status_code
-                    or status >= HTTPInternalServerError.status_code
-                ):
-                    backoff *= 2
-                    self.logger.warning(
-                        "%s connection error %s - reconnecting in %s seconds",
-                        self._base_url,
-                        err,
-                        backoff,
-                    )
-                    continue
-                self.logger.error("%s connection error %s - abort", self._base_url, err)
-                break
-
             except (TimeoutError, AsyncioTimeoutError, FuturesTimeoutError):
+                backoff *= 1.5
                 self.logger.warning(
                     "%s endpoint timeouted - reconnecting", self._base_url
                 )
                 continue
 
-            except ClientPayloadError:
-                self.logger.warning(
-                    "%s endpoint malformed response - reconnecting", self._base_url
-                )
-                continue
+            except CancelledError:
+                # task is cancelled - abort
+                break
+
+            except (ClientConnectionError, ConnectionError) as exc:
+                raise MetisConnectionException(
+                    f"Connection error for {str(url)!r} with - {exc}"
+                ) from exc
+
+            except ClientResponseError as err:
+                if err.status and (
+                    err.status == HTTPTooManyRequests.status_code
+                    or err.status >= HTTPInternalServerError.status_code
+                ):
+                    backoff *= 2
+                    self.logger.warning(
+                        "%s connection error %s - reconnecting in %s seconds",
+                        url,
+                        err,
+                        backoff,
+                    )
+                    continue
+                self._raise_for_status(err.status, err.request_info, err.message)

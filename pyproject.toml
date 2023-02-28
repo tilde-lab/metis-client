@@ -28,19 +28,14 @@ classifiers = [
 keywords = ["metis", "client"]
 requires-python = ">=3.8"
 dependencies = [
-    "asgiref >= 3.5.2",
     "aiohttp >= 3.7.4",
     "aiohttp-sse-client >= 0.2.1",
-    # because of TypeGuard, Self, Unpack, ParamSpec, Concatenate, NotRequired
-    "typing-extensions >= 4.2.0, < 5; python_version < '3.11'",
-    "yarl >= 1.6.3, < 2.0",
+    "asgiref >= 3.5.2",
+    "typing-extensions >= 4.2.0; python_version < '3.11'",
+    "yarl >= 1.6.3",
 ]
 
 [project.optional-dependencies]
-cli = [
-    # "anyio >= 3.0.0",
-    # "click >= 7.1.1",
-]
 debug = [
       "wdb"
 ]
@@ -52,6 +47,7 @@ lint = [
      "isort",
      "mypy >= 1.0.0, <2",
      "pylint",
+     "pylint-per-file-ignores >= 1",
      "pyupgrade",
 ]
 test = [
@@ -74,7 +70,7 @@ remove-duplicate-keys = true
 remove-unused-variables = true
 
 [tool.black]
-target-version = ['py38']
+target-version = ['py38', 'py39', 'py310', 'py311']
 
 [tool.isort]
 # see https://github.com/psf/black
@@ -94,6 +90,11 @@ python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 
+[tool.pylint.MASTER]
+load-plugins=[
+    "pylint_per_file_ignores",
+]
+
 [tool.pylint.main]
 jobs = 0
 py-version = "3.8"
@@ -101,7 +102,7 @@ recursive = true
 suggestion-mode = true
 
 [tool.pylint.basic]
-good-names = ["id", "_", "__"]
+good-names = ["id", "x", "xy", "y", "_", "__"]
 
 [tool.pylint.design]
 max-args = 7
@@ -115,6 +116,9 @@ max-line-length = 88
 output-format = "colorized"
 reports = "no"
 score = "no"
+
+[tool.pylint-per-file-ignores]
+"/tests/" = "redefined-outer-name"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
