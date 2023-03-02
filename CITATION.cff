@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: metis-client
+type: software
+license: BSD-3-Clause
+authors:
+  - given-names: Sergei
+    family-names: Korolev
+    orcid: 'https://orcid.org/0009-0003-0771-206X'
+  - given-names: Evgeny
+    family-names: Blokhin
+    orcid: 'https://orcid.org/0000-0002-5333-3947'
+doi: 10.5281/zenodo.7693569
+url: 'https://github.com/tilde-lab/metis-client'
+repository-artifact: 'https://pypi.org/project/metis-client'
+keywords:
+  - Metis infrastructure
+  - Metis-Science
+  - Metis API
