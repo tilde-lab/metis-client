@@ -1,6 +1,6 @@
 # Metis API client
 
-![PyPI](https://img.shields.io/pypi/v/metis_client.svg?style=flat)
+[![PyPI](https://img.shields.io/pypi/v/metis_client.svg?style=flat)](https://pypi.org/project/metis-client)
 
 <p align="center"><img src="https://github.com/tilde-lab/metis.science/blob/master/src/assets/img/metis.svg" width="300" height="300" /></p>
 
