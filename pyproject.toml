@@ -55,6 +55,10 @@ test = [
     "pytest-aiohttp >= 1.0.4, <2",
     "pytest-cov",
 ]
+pypi = [
+     "build",
+     "twine",
+]
 
 [project.urls]
 Source = "https://github.com/tilde-lab/metis-client"
