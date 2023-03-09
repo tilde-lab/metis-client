@@ -28,7 +28,9 @@ class MetisDataSourceDTO(MetisTimestampsDTO):
     content: str
     type: int
     collections: Sequence[MetisCollectionDTO]
-    progress: int
+
+    def __repr__(self):
+        return f"[{self.id}] {self.name} type {self.type}"
 
 
 class MetisDataSourceContentOnlyDTO(TypedDict):

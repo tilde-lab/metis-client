@@ -19,13 +19,18 @@ except IndexError:
 client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
 
 print(client.v0.auth.whoami())
-data = client.v0.datasources.create(CONTENT)
-if not data:
-    print(data)
-    sys.exit(1)
 
-calc = client.v0.calculations.create(data["id"])
+data = client.v0.datasources.create(CONTENT)
+print(data)
+assert data
+
+calc = client.v0.calculations.create(data.id, engine='topas')
 print(calc)
-if not calc:
-    sys.exit(1)
+assert calc
+
+res = client.v0.calculations.cancel(calc.id)
+print(res)
+assert res
+
 print("=" * 100 + "Test passed")
+

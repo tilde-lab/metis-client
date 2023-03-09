@@ -1,4 +1,7 @@
+
+
 "Test MetisCollectionsNamespace"
+
 import asyncio
 import json
 from contextlib import nullcontext as does_not_raise
@@ -27,6 +30,7 @@ from metis_client.exc import (
 )
 from metis_client.models import MetisMessageEvent
 from tests.helpers import random_word
+
 
 dt = datetime.fromordinal(1)
 TOKEN = random_word(10)
