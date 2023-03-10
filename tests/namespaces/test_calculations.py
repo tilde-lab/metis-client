@@ -1,4 +1,3 @@
-
 "Test MetisCalculationsNamespace"
 
 import asyncio
