@@ -1,5 +1,3 @@
-
-
 "Test MetisCollectionsNamespace"
 
 import asyncio

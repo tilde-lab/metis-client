@@ -1,4 +1,3 @@
-
 "Test MetisAuthNamespace"
 
 import asyncio
@@ -106,7 +105,8 @@ async def test_login_ok(client: MetisAPI, client_async: MetisAPIAsync):
     auth_sync = await asyncio.get_event_loop().run_in_executor(
         None, client.v0.auth.login, *args
     )
-    assert auth_async == auth_sync is True, "Auth should be successful"
+    assert auth_async is True, "Auth should be successful"
+    assert auth_async == auth_sync, "Results should be the same"
 
 
 async def test_login_fail(client: MetisAPI, client_async: MetisAPIAsync):

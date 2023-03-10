@@ -29,9 +29,6 @@ class MetisDataSourceDTO(MetisTimestampsDTO):
     type: int
     collections: Sequence[MetisCollectionDTO]
 
-    def __repr__(self):
-        return f"[{self.id}] {self.name} type {self.type}"
-
 
 class MetisDataSourceContentOnlyDTO(TypedDict):
     "Data source content only DTO"
