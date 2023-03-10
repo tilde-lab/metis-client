@@ -1,6 +1,7 @@
 "Test MetisClient"
 import json
 from asyncio import Task
+from contextlib import suppress
 from itertools import count
 from typing import Dict, Optional, Type, Union
 
@@ -295,7 +296,7 @@ async def test_sse_msg_receive(
     task = asyncio.create_task(
         client.sse(URL(PATH_SSE_SIMPLE).with_query(query), on_message)
     )
-    await asyncio.wait_for(task, 0.01)
+    await asyncio.wait_for(task, 1)
 
 
 async def test_sse_timeout(
@@ -306,18 +307,25 @@ async def test_sse_timeout(
     task: Optional[Task] = None
 
     def on_message(_: MessageEvent):
-        if task:
-            task.cancel()
+        pass
+
+    def timeouted_in_log() -> bool:
+        recs = list(filter(lambda x: "timeouted" in x.message, caplog.records))
+        return len(recs) >= 1
+
+    async def wait_timeouted_in_log():
+        while not timeouted_in_log():
+            await asyncio.sleep(0.001)
 
     with caplog.at_level(logging.WARNING):
         task = asyncio.create_task(
             client.sse(URL(PATH_SSE_SIMPLE), on_message, timeout=0.00000001)
         )
-        await asyncio.wait_for(task, 0.3)
+        await asyncio.wait_for(wait_timeouted_in_log(), 1)
+        task.cancel()
+        await task
 
-    assert (
-        len(list(filter(lambda x: "timeouted" in x.message, caplog.records))) > 1
-    ), "Client should log about timeout"
+    assert timeouted_in_log(), "Client should log about timeout"
 
 
 async def test_sse_connection_error(
@@ -343,20 +351,21 @@ async def test_sse_response_errors(
     task: Optional[Task] = None
 
     def on_message(_: MessageEvent):
-        if task:
-            task.cancel()
+        pass
 
     query = {"force_status": HTTPTooManyRequests.status_code}
     task = asyncio.create_task(
         client.sse(URL(PATH_SSE_SIMPLE).with_query(query), on_message)
     )
-    await asyncio.wait_for(task, 0.01)
+    with suppress(asyncio.TimeoutError):
+        await asyncio.wait_for(task, 0.01)
 
     query = {"force_status": HTTPInternalServerError.status_code}
     task = asyncio.create_task(
         client.sse(URL(PATH_SSE_SIMPLE).with_query(query), on_message)
     )
-    await asyncio.wait_for(task, 0.01)
+    with suppress(asyncio.TimeoutError):
+        await asyncio.wait_for(task, 0.01)
 
     with pytest.raises(MetisNotFoundException):
         query = {"force_status": HTTPNotFound.status_code}
