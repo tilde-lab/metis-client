@@ -19,20 +19,20 @@ else:  # pragma: no cover
 class MetisDatasourcesNamespace(BaseNamespace):
     """Datasources endpoints namespace"""
 
-    async def create_event(self, content: str) -> MetisRequestIdDTO:
+    async def create_event(self, content: str, fmt: str = None, name: str = None) -> MetisRequestIdDTO:
         "Create data source"
         async with self._client.request(
             method="POST",
             url=self._base_url,
-            json={"content": content},
+            json={"content": content, "fmt": fmt, "name": name},
             auth_required=True,
         ) as resp:
             return await resp.json()
 
-    async def create(self, content: str) -> Optional[MetisDataSourceDTO]:
-        "Create data source and wait for result"
+    async def create(self, content: str, fmt: str = None, name: str = None) -> Optional[MetisDataSourceDTO]:
+        "Create data source and wait for the result"
         evt = await act_and_get_result_from_stream(
-            self._root.stream.subscribe, partial(self.create_event, content)
+            self._root.stream.subscribe, partial(self.create_event, content, fmt, name)
         )
         if evt["type"] == "datasources":
             data = sorted(
@@ -51,7 +51,7 @@ class MetisDatasourcesNamespace(BaseNamespace):
             return await resp.json()
 
     async def delete(self, data_id: int) -> None:
-        "Delete data source by id and wait for result"
+        "Delete data source by id and wait for the result"
         await act_and_get_result_from_stream(
             self._root.stream.subscribe, partial(self.delete_event, data_id)
         )
@@ -66,7 +66,7 @@ class MetisDatasourcesNamespace(BaseNamespace):
             return await resp.json()
 
     async def list(self) -> Sequence[MetisDataSourceDTO]:
-        "List data sources and wait for result"
+        "List data sources and wait for the result"
         evt = await act_and_get_result_from_stream(
             self._root.stream.subscribe, partial(self.list_event)
         )

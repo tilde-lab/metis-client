@@ -74,9 +74,9 @@ class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
     """Datasources endpoints namespace"""
 
     @to_sync_with_metis_client
-    async def create(self, client: MetisAPIAsync, content: str):
+    async def create(self, client: MetisAPIAsync, content: str, fmt: str = None, name: str = None):
         "Create data source and wait for result"
-        return await client.v0.datasources.create(content)
+        return await client.v0.datasources.create(content, fmt, name)
 
     @to_sync_with_metis_client
     async def delete(self, client: MetisAPIAsync, data_id: int):
