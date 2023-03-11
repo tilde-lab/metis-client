@@ -2,7 +2,7 @@
 
 import sys
 from functools import partial
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar, cast, Optional
 
 from aiohttp.typedefs import StrOrURL
 from asgiref.sync import async_to_sync
@@ -74,7 +74,13 @@ class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
     """Datasources endpoints namespace"""
 
     @to_sync_with_metis_client
-    async def create(self, client: MetisAPIAsync, content: str, fmt: str = None, name: str = None):
+    async def create(
+        self,
+        client: MetisAPIAsync,
+        content: str,
+        fmt: Optional[str] = None,
+        name: Optional[str] = None,
+    ):
         "Create data source and wait for result"
         return await client.v0.datasources.create(content, fmt, name)
 
