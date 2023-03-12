@@ -2,7 +2,7 @@
 
 import sys
 from functools import partial
-from typing import Any, TypeVar, cast, Optional
+from typing import Any, Optional, TypeVar, cast
 
 from aiohttp.typedefs import StrOrURL
 from asgiref.sync import async_to_sync
