@@ -32,6 +32,9 @@ class MetisError(MetisException):
         if message:
             self.message = message
 
+    def __str__(self) -> str:
+        return f"status: {self.status}, message: {self.message}"
+
 
 class MetisNotFoundException(MetisError):
     """This is raised when the requested resource is not found."""
