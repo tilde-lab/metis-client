@@ -25,12 +25,10 @@ data = client.v0.datasources.create(CONTENT)
 print(data)
 assert data
 
-calc = client.v0.calculations.create(data.id, engine="topas")
+calc = client.v0.calculations.create(data.get("id"), engine="topas")
 print(calc)
 assert calc
 
-res = client.v0.calculations.cancel(calc.id)
-print(res)
-assert res
+client.v0.calculations.cancel(calc.get("id"))
 
 print("=" * 100 + "Test passed")
