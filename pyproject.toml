@@ -55,6 +55,9 @@ test = [
     "pytest-aiohttp >= 1.0.4, <2",
     "pytest-cov",
 ]
+release = [
+    "flit",
+]
 
 [project.urls]
 Source = "https://github.com/tilde-lab/metis-client"
