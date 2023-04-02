@@ -1,15 +1,10 @@
 ---
 # yamllint disable rule:line-length
-name: Test, build and release
+name: Run tests
 
-on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-  push:
-    branches:
-      - master
-    tags:
-      - "v*.*.*"
+on: # yamllint disable-line rule:truthy rule:comments
+  # allow this workflow to be called from other workflows
+  workflow_call:
 
 jobs:
   test:
@@ -31,8 +26,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-          cache-dependency-path: |
-            pyproject.toml
+          cache-dependency-path: pyproject.toml
 
       - name: Install dependencies
         run: |
@@ -47,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v3
         # Use always() to always run this step to publish test results
         # when there are test failures
-        if: ${{ always() }}
+        if: always()
         with:
           name: pytest-results-${{ matrix.python-version }}
           path: junit/test-results-${{ matrix.python-version }}.xml
