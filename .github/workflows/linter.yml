@@ -2,9 +2,9 @@
 # yamllint disable rule:line-length
 name: Lint Code Base
 
-on:
-  pull_request:
-    types: [opened, reopened, synchronize]
+on: # yamllint disable-line rule:truthy rule:comments
+  # allow this workflow to be called from other workflows
+  workflow_call:
 
 jobs:
   lint:

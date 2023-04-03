@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "metis-client"
-dynamic = ["version"]  # read from metis_client/__init__.py
+version = "0.0.3"
 description = """Metis infra API client in Python"""
 authors = [{name = "Sergei Korolev", email = "knopki@duck.com"}]
 readme = "README.md"
@@ -55,8 +55,15 @@ test = [
     "pytest-aiohttp >= 1.0.4, <2",
     "pytest-cov",
 ]
+release = [
+    "commitizen",
+    "flit",
+]
 
 [project.urls]
+Home = "https://github.com/tilde-lab/metis-client"
+Changelog = "https://github.com/tilde-lab/metis-client/blob/master/CHANGELOG.md"
+Issues = "https://github.com/tilde-lab/metis-client/issues"
 Source = "https://github.com/tilde-lab/metis-client"
 
 [tool.flit.module]
@@ -123,3 +130,14 @@ score = "no"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 addopts = "--cov=metis_client --cov-report=term --no-cov-on-fail --cov-fail-under=99"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.0.3"
+tag_format = "v$version"
+major_version_zero = true
+version_files = [
+    "pyproject.toml:^version",
+    "metis_client/const.py:^PROJECT_VERSION",
+]
+update_changelog_on_bump = true
