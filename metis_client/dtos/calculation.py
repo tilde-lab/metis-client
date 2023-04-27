@@ -21,4 +21,5 @@ class MetisCalculationDTO(MetisTimestampsDTO):
     name: str
     userId: int
     progress: int
+    parent: int
     result: NotRequired[Sequence[MetisDataSourceDTO]]
