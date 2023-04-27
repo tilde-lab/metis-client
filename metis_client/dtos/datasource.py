@@ -30,6 +30,8 @@ class MetisDataSourceDTO(MetisTimestampsDTO):
     "Data source DTO"
 
     id: int
+    parents: Sequence[int]
+    children: Sequence[int]
     userId: int
     userFirstName: str
     userLastName: str
