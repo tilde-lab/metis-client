@@ -9,7 +9,11 @@ from .collection import (
     MetisCollectionTypeDTO,
     MetisCollectionVisibility,
 )
-from .datasource import MetisDataSourceContentOnlyDTO, MetisDataSourceDTO
+from .datasource import (
+    DataSourceType,
+    MetisDataSourceContentOnlyDTO,
+    MetisDataSourceDTO,
+)
 from .error import MetisErrorDTO
 from .event import (
     MetisCalculationsEventDTO,
