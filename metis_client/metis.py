@@ -2,10 +2,12 @@
 
 import sys
 from functools import partial
-from typing import Any, Optional, TypeVar, cast
+from typing import Any, Optional, Sequence, TypeVar, cast
 
 from aiohttp.typedefs import StrOrURL
 from asgiref.sync import async_to_sync
+
+from metis_client.dtos.datasource import MetisDataSourceDTO
 
 from .metis_async import MetisAPIAsync, MetisAPIKwargs
 from .models.base import MetisBase
@@ -95,9 +97,30 @@ class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.datasources.list()
 
     @to_sync_with_metis_client
-    async def get(self, client: MetisAPIAsync, data_id: int):
+    async def get(
+        self, client: MetisAPIAsync, data_id: int
+    ) -> Optional[MetisDataSourceDTO]:
         "Get data source by id"
         return await client.v0.datasources.get(data_id)
+
+    @to_sync_with_metis_client
+    async def get_parents(
+        self, client: MetisAPIAsync, data_id: int
+    ) -> Sequence[MetisDataSourceDTO]:
+        "Get parent data sources by id"
+        return await client.v0.datasources.get_parents(data_id)
+
+    @to_sync_with_metis_client
+    async def get_children(
+        self, client: MetisAPIAsync, data_id: int
+    ) -> Sequence[MetisDataSourceDTO]:
+        "Get children data sources by id"
+        return await client.v0.datasources.get_children(data_id)
+
+    @to_sync_with_metis_client
+    async def get_content(self, client: MetisAPIAsync, data_id: int):
+        "Get data source by id"
+        return await client.v0.datasources.get_content(data_id)
 
 
 class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):

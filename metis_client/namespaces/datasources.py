@@ -78,8 +78,25 @@ class MetisDatasourcesNamespace(BaseNamespace):
             return evt.get("data", {}).get("data", [])
         return []  # pragma: no cover
 
+    async def get(self, data_id: int) -> Optional[MetisDataSourceDTO]:
+        "Get data source by id"
+        data = list(filter(lambda x: x["id"] == data_id, await self.list()))
+        return data[-1] if data else None
+
+    async def get_parents(self, data_id: int) -> Sequence[MetisDataSourceDTO]:
+        "Get parent data sources by id"
+        return list(
+            filter(lambda x: data_id in x.get("children", []), await self.list())
+        )
+
+    async def get_children(self, data_id: int) -> Sequence[MetisDataSourceDTO]:
+        "Get children data sources by id"
+        return list(
+            filter(lambda x: data_id in x.get("parents", []), await self.list())
+        )
+
     @raise_on_metis_error
-    async def get(self, data_id: int) -> MetisDataSourceContentOnlyDTO:
+    async def get_content(self, data_id: int) -> MetisDataSourceContentOnlyDTO:
         "Get data source by id"
         async with self._client.request(
             method="GET",
