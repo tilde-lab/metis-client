@@ -20,6 +20,5 @@ class MetisCalculationDTO(MetisTimestampsDTO):
     id: int
     name: str
     userId: int
-    status: int
     progress: int
     result: NotRequired[Sequence[MetisDataSourceDTO]]
