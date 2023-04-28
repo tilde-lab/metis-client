@@ -11,6 +11,7 @@ from metis_client.dtos.datasource import MetisDataSourceDTO
 
 from .metis_async import MetisAPIAsync, MetisAPIKwargs
 from .models.base import MetisBase
+from .namespaces.calculations import MetisCalculationOnProgressT
 from .namespaces.collections import MetisCollectionsCreateKwargs
 
 if sys.version_info < (3, 9):  # pragma: no cover
@@ -137,6 +138,29 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.calculations.create(data_id, engine)
 
     @to_sync_with_metis_client
+    async def get_results(
+        self,
+        client: MetisAPIAsync,
+        calc_id: int,
+        on_progress: Optional[MetisCalculationOnProgressT] = None,
+    ):
+        "Waits for the end of the calculation and returns the results"
+        return await client.v0.calculations.get_results(calc_id, on_progress)
+
+    @to_sync_with_metis_client
+    async def create_get_results(
+        self,
+        client: MetisAPIAsync,
+        data_id: int,
+        engine: str = "dummy",
+        on_progress: Optional[MetisCalculationOnProgressT] = None,
+    ):
+        "Create calculation, wait done and get results"
+        return await client.v0.calculations.create_get_results(
+            data_id, engine, on_progress
+        )
+
+    @to_sync_with_metis_client
     async def get_engines(self, client: MetisAPIAsync):
         "Get supported calculation engines"
         return await client.v0.calculations.get_engines()
@@ -145,6 +169,11 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
     async def list(self, client: MetisAPIAsync):
         "List all user's calculations and wait for result"
         return await client.v0.calculations.list()
+
+    @to_sync_with_metis_client
+    async def get(self, client: MetisAPIAsync, calc_id: int):
+        "Get calculation by id"
+        return await client.v0.calculations.get(calc_id)
 
 
 class MetisCollectionsNamespaceSync(MetisNamespaceSyncBase):
