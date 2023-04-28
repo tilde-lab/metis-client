@@ -5,6 +5,7 @@
 import sys
 
 from metis_client import MetisAPI, MetisTokenAuth
+from metis_client.dtos import MetisCalculationDTO
 
 API_URL = "http://localhost:3000"
 
@@ -17,18 +18,72 @@ except IndexError:
 ["Au"]}],"cartesian_site_positions":[[0,0,0]],"lattice_vectors":[[0,2,2],[2,0,2],[2,2,0]]}}"""
 
 
-client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
+def on_progress_log(calc: MetisCalculationDTO):
+    "Print progress"
+    print("Progress: ", calc.get("progress"))
 
-print(client.v0.auth.whoami())
 
-data = client.v0.datasources.create(CONTENT)
-print(data)
-assert data
+def create_calc_then_get_results(client: MetisAPI):
+    "Create data source, run calculation, then wait results"
+    data = client.v0.datasources.create(CONTENT)
+    assert data
 
-calc = client.v0.calculations.create(data.get("id"), engine="topas")
-print(calc)
-assert calc
+    calc = client.v0.calculations.create(data.get("id"))
+    assert calc
 
-client.v0.calculations.cancel(calc.get("id"))
+    results = client.v0.calculations.get_results(
+        calc["id"], on_progress=on_progress_log
+    )
+    print(results)
+    assert results
+    print("=" * 50 + "Test passed")
 
-print("=" * 100 + "Test passed")
+
+def create_calc_and_get_results(client: MetisAPI):
+    "Create data source, run calculation and wait results"
+    data = client.v0.datasources.create(CONTENT)
+    assert data
+
+    results = client.v0.calculations.create_get_results(
+        data["id"], on_progress=on_progress_log
+    )
+    print(results)
+    assert results
+    print("=" * 50 + "Test passed")
+
+
+def create_calc_then_cancel(client: MetisAPI):
+    """
+    Create data source. Run calculation.
+    Stop watching calculation on 50%, cancel calculation.
+    """
+    data = client.v0.datasources.create(CONTENT)
+    assert data
+
+    def stop_watching_on_half(calc: MetisCalculationDTO):
+        on_progress_log(calc)
+        return calc.get("progress") < 50
+
+    calc = client.v0.calculations.create(data.get("id"))
+    assert calc
+
+    results = client.v0.calculations.get_results(
+        calc["id"], on_progress=stop_watching_on_half
+    )
+    assert results is None
+    client.v0.calculations.cancel(calc["id"])
+    print("=" * 50 + "Test passed")
+
+
+def main():
+    "Run all examples"
+    client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
+
+    print(client.v0.auth.whoami())
+
+    create_calc_then_get_results(client)
+    create_calc_and_get_results(client)
+    create_calc_then_cancel(client)
+
+
+main()
