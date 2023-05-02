@@ -2,12 +2,12 @@
 
 ### Feat
 
-- more vebrose exception
+- more verbose exceptions
 
 ### Fix
 
-- example
-- there is no __repr__ for TypedDict
+- examples
+- fix __repr__ for TypedDict
 - linting
 - client tests
 
@@ -16,10 +16,9 @@
 ### Feat
 
 - tests GH action
-- tests
 - full API coverage and refactor to TypedDicts
 - sync client
-- implement all endpoints and more user friendly async api
+- implement all endpoints and more user-friendly async API
 - lint github action
 - setup linters
 - setup dependabot
