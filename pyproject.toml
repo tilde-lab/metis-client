@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "metis-client"
-version = "0.1.0"
+version = "0.2.0"
 description = """Metis infra API client in Python"""
 authors = [{name = "Sergei Korolev", email = "knopki@duck.com"}]
 readme = "README.md"
@@ -133,7 +133,7 @@ addopts = "--cov=metis_client --cov-report=term --no-cov-on-fail --cov-fail-unde
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.1.0"
+version = "0.2.0"
 tag_format = "v$version"
 major_version_zero = true
 version_files = [

@@ -1,3 +1,17 @@
+## v0.2.0 (2023-05-02)
+
+### Feat
+
+- **calculations**: wait and get results of calculation
+- **MetisCalculationDTO**: add parent field
+- **datasources**: get, get_parents, get_children methods
+- **MetisDataSourceDTO**: parents-children fields
+- **datasources**: DataSourceType
+
+### Fix
+
+- **MetisCalculationDTO**: remove nonexistent field
+
 ## v0.1.0 (2023-05-02)
 
 ### Feat
