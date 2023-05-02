@@ -1,3 +1,16 @@
+## v0.1.0 (2023-05-02)
+
+### Feat
+
+- more vebrose exception
+
+### Fix
+
+- example
+- there is no __repr__ for TypedDict
+- linting
+- client tests
+
 ## v0.0.3 (2023-03-02)
 
 ### Feat
