@@ -27,37 +27,8 @@ async def main():
     async with MetisAPIAsync(API_URL, auth=MetisTokenAuth("admin@test.com")) as client:
         print(await client.v0.auth.whoami())
         data = await client.v0.datasources.create(content)
-        calc = await client.v0.calculations.create(data["id"])
-        print(calc)
-
-        # There is also a low level interface
-        from metis_client.models import MetisDataSourcesEventModel, MetisCalculationsEventModel
-        async with client.stream.subscribe() as sub:
-            req = await client.v0.datasources.create_event(content)
-            async for msg in sub:
-                if msg["type"] == "datasources" and msg.get("data", {}).get(
-                    "reqId"
-                ) == req.get("reqId"):
-                    answer = msg.get("data")
-                    break
-            if not answer:
-                return None
-
-            data_id = sorted(
-                answer.get("data", []),
-                key=lambda x: x.get("createdAt", datetime.fromordinal(1)),
-            )[-1].get("id")
-            req = await client.v0.calculations.create_event(data_id)
-            answer = None
-            async for msg in sub:
-                if msg["type"] == "calculations" and msg.get("data", {}).get(
-                    "reqId"
-                ) == req.get("reqId"):
-                    data = msg.get("data", {}).get("data", [])
-                    if data:
-                        answer = data[-1]
-                    break
-            print(answer)
+        results = await client.v0.calculations.create_get_results(data["id"])
+        print(resuls)
 ```
 
 See `examples` directory for more examples.
@@ -71,8 +42,8 @@ from metis_client import MetisAPI, MetisTokenAuth
 
 client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
 data = client.v0.datasources.create(content)
-calc = client.v0.calculations.create(data.get("id"))
-print(calc)
+results = client.v0.calculations.create_get_results(data["id"])
+print(results)
 ```
 
 ## License
@@ -82,3 +53,4 @@ Author Sergey Korolev, Tilde Materials Informatics
 Copyright 2023 BASF SE
 
 BSD 3-Clause
+  * [ ] 

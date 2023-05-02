@@ -15,27 +15,33 @@ from yarl import URL
 
 from metis_client import MetisAPI, MetisAPIAsync, MetisTokenAuth
 from metis_client.dtos import MetisCalculationDTO, MetisErrorDTO, MetisRequestIdDTO
+from metis_client.dtos.datasource import DataSourceType
 from metis_client.exc import MetisPayloadException, MetisQuotaException
 from metis_client.models import MetisMessageEvent
 from tests.helpers import random_word
-
+from tests.namespaces.test_datasources import (
+    DS_ID,
+    PATH_DS_POST_RESPONSE_PAYLOAD,
+    make_datasources_event,
+)
 
 dt = datetime.fromordinal(1)
 TOKEN = random_word(10)
+CALC_ID = 10
 PATH_STREAM = "/stream"
 PATH_PING = "/v0"
 PATH_C = "/v0/calculations"
 PATH_C_ID = "/v0/calculations/{id}"
 PATH_C_ENGINES = "/v0/calculations/engines"
 PATH_C_POST_RESPONSE_PAYLOAD: MetisCalculationDTO = {
-    "id": 1,
+    "id": CALC_ID,
     "name": random_word(10),
     "userId": 1,
-    "status": 1,
     "progress": 1,
     "result": [],
     "createdAt": dt,
     "updatedAt": dt,
+    "parent": DS_ID,
 }
 PATH_C_POST_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {"status": 400, "error": "oops"}
 PATH_C_GET_RESPONSE_PAYLOAD = deepcopy(PATH_C_POST_RESPONSE_PAYLOAD)
@@ -94,10 +100,37 @@ async def calculation_create_handler(request: web.Request) -> web.Response:
             "updatedAt": dt.isoformat(),
         }
         evt = make_calculations_event(body["reqId"], [cal_dto])
+        event_stream.append(evt)
+    elif payload.get("engine") == "results":
+        cal_dto = {
+            **PATH_C_POST_RESPONSE_PAYLOAD,
+            "createdAt": dt.isoformat(),
+            "updatedAt": dt.isoformat(),
+            "progress": 25,
+            "parent": payload["dataId"],
+        }
+        event_stream.append(make_calculations_event(body["reqId"], [cal_dto]))
+        event_stream.append(
+            make_calculations_event(body["reqId"], [{**cal_dto, "progress": 50}])
+        )
+        event_stream.append(make_calculations_event(body["reqId"], []))
+        event_stream.append(
+            make_calculations_event(body["reqId"], [{**cal_dto, "progress": 75}])
+        )
+        ds_dto = {
+            **PATH_DS_POST_RESPONSE_PAYLOAD,
+            "createdAt": dt.isoformat(),
+            "updatedAt": dt.isoformat(),
+            "parents": [payload["dataId"]],
+            "type": DataSourceType.PROPERTY,
+        }
+        event_stream.append(
+            make_calculations_event(body["reqId"], [{**ds_dto, "progress": 100}])
+        )
+        event_stream.append(make_datasources_event(body["reqId"], [ds_dto]))
     else:
         evt = make_error_event(body["reqId"], [PATH_C_POST_RESPONSE_ERROR_PAYLOAD])
-
-    event_stream.append(evt)
+        event_stream.append(evt)
 
     return web.json_response(body, status=HTTPOk.status_code)
 
@@ -205,6 +238,69 @@ async def test_create_calculation(
 
 
 @pytest.mark.parametrize(
+    "early_exit, sync, create",
+    [
+        (True, True, True),
+        (False, True, False),
+        (False, False, True),
+        (False, False, False),
+    ],
+)
+async def test_get_results(
+    client: MetisAPI,
+    client_async: MetisAPIAsync,
+    early_exit: bool,
+    sync: bool,
+    create: bool,
+):
+    "Test get_results() and create_get_results()"
+
+    def on_progress(calc: MetisCalculationDTO):
+        assert on_progress.progress <= calc.get("progress", 0)
+        on_progress.progress = calc.get("progress", 0)
+        return not early_exit
+
+    async def async_on_progress(calc: MetisCalculationDTO):
+        return on_progress(calc)
+
+    on_progress.progress = 0
+
+    if sync:
+        if create:
+            results = await asyncio.get_event_loop().run_in_executor(
+                None,
+                client.v0.calculations.create_get_results,
+                DS_ID,
+                "results",
+                on_progress,
+            )
+        else:
+            calc = await asyncio.get_event_loop().run_in_executor(
+                None, client.v0.calculations.create, DS_ID, "results"
+            )
+            assert calc and calc["id"] == CALC_ID
+            results = await asyncio.get_event_loop().run_in_executor(
+                None, client.v0.calculations.get_results, calc["id"], on_progress
+            )
+    else:
+        if create:
+            results = await client_async.v0.calculations.create_get_results(
+                DS_ID, "results", async_on_progress
+            )
+        else:
+            calc = await client_async.v0.calculations.create(DS_ID, "results")
+            assert calc and calc["id"] == CALC_ID
+            results = await client_async.v0.calculations.get_results(
+                calc["id"], async_on_progress
+            )
+
+    if early_exit:
+        assert results is None
+    else:
+        assert results and DS_ID in results[0].get("parents", [])
+
+
+@pytest.mark.parametrize(
     "fail, expected, raises",
     [
         (False, [PATH_C_GET_RESPONSE_PAYLOAD], does_not_raise()),
@@ -221,6 +317,30 @@ async def test_list_calculations(base_url: URL, fail: bool, expected, raises):
         client = MetisAPI(base_url, auth=MetisTokenAuth(str(fail)))
         cal = await asyncio.get_event_loop().run_in_executor(
             None, client.v0.calculations.list
+        )
+        assert cal == expected, "Response matches"
+
+
+@pytest.mark.parametrize(
+    "calc_id, fail, expected, raises",
+    [
+        (CALC_ID, False, PATH_C_GET_RESPONSE_PAYLOAD, does_not_raise()),
+        (-1, False, None, does_not_raise()),
+        (-1, True, None, pytest.raises(MetisQuotaException)),
+    ],
+)
+async def test_get_calculation(
+    base_url: URL, calc_id: int, fail: bool, expected, raises
+):
+    "Test get()"
+    with raises:
+        async with MetisAPIAsync(base_url, auth=MetisTokenAuth(str(fail))) as client:
+            cal = await client.v0.calculations.get(calc_id)
+        assert cal == expected, "Response matches"
+    with raises:
+        client = MetisAPI(base_url, auth=MetisTokenAuth(str(fail)))
+        cal = await asyncio.get_event_loop().run_in_executor(
+            None, client.v0.calculations.get, calc_id
         )
         assert cal == expected, "Response matches"
 

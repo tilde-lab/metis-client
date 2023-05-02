@@ -2,13 +2,16 @@
 
 import sys
 from functools import partial
-from typing import Any, Optional, TypeVar, cast
+from typing import Any, Optional, Sequence, TypeVar, cast
 
 from aiohttp.typedefs import StrOrURL
 from asgiref.sync import async_to_sync
 
+from metis_client.dtos.datasource import MetisDataSourceDTO
+
 from .metis_async import MetisAPIAsync, MetisAPIKwargs
 from .models.base import MetisBase
+from .namespaces.calculations import MetisCalculationOnProgressT
 from .namespaces.collections import MetisCollectionsCreateKwargs
 
 if sys.version_info < (3, 9):  # pragma: no cover
@@ -95,9 +98,30 @@ class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.datasources.list()
 
     @to_sync_with_metis_client
-    async def get(self, client: MetisAPIAsync, data_id: int):
+    async def get(
+        self, client: MetisAPIAsync, data_id: int
+    ) -> Optional[MetisDataSourceDTO]:
         "Get data source by id"
         return await client.v0.datasources.get(data_id)
+
+    @to_sync_with_metis_client
+    async def get_parents(
+        self, client: MetisAPIAsync, data_id: int
+    ) -> Sequence[MetisDataSourceDTO]:
+        "Get parent data sources by id"
+        return await client.v0.datasources.get_parents(data_id)
+
+    @to_sync_with_metis_client
+    async def get_children(
+        self, client: MetisAPIAsync, data_id: int
+    ) -> Sequence[MetisDataSourceDTO]:
+        "Get children data sources by id"
+        return await client.v0.datasources.get_children(data_id)
+
+    @to_sync_with_metis_client
+    async def get_content(self, client: MetisAPIAsync, data_id: int):
+        "Get data source by id"
+        return await client.v0.datasources.get_content(data_id)
 
 
 class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
@@ -114,6 +138,29 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.calculations.create(data_id, engine)
 
     @to_sync_with_metis_client
+    async def get_results(
+        self,
+        client: MetisAPIAsync,
+        calc_id: int,
+        on_progress: Optional[MetisCalculationOnProgressT] = None,
+    ):
+        "Waits for the end of the calculation and returns the results"
+        return await client.v0.calculations.get_results(calc_id, on_progress)
+
+    @to_sync_with_metis_client
+    async def create_get_results(
+        self,
+        client: MetisAPIAsync,
+        data_id: int,
+        engine: str = "dummy",
+        on_progress: Optional[MetisCalculationOnProgressT] = None,
+    ):
+        "Create calculation, wait done and get results"
+        return await client.v0.calculations.create_get_results(
+            data_id, engine, on_progress
+        )
+
+    @to_sync_with_metis_client
     async def get_engines(self, client: MetisAPIAsync):
         "Get supported calculation engines"
         return await client.v0.calculations.get_engines()
@@ -122,6 +169,11 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
     async def list(self, client: MetisAPIAsync):
         "List all user's calculations and wait for result"
         return await client.v0.calculations.list()
+
+    @to_sync_with_metis_client
+    async def get(self, client: MetisAPIAsync, calc_id: int):
+        "Get calculation by id"
+        return await client.v0.calculations.get(calc_id)
 
 
 class MetisCollectionsNamespaceSync(MetisNamespaceSyncBase):

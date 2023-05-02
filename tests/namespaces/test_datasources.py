@@ -28,15 +28,17 @@ from metis_client.exc import (
 from metis_client.models import MetisMessageEvent
 from tests.helpers import random_word
 
-
 dt = datetime.fromordinal(1)
+DS_ID = 1
+PARENT_DS_ID = 2
+CHILD_DS_ID = 3
 TOKEN = random_word(10)
 PATH_STREAM = "/stream"
 PATH_PING = "/v0"
 PATH_DS = "/v0/datasources"
 PATH_DS_ID = "/v0/datasources/{id}"
 PATH_DS_POST_RESPONSE_PAYLOAD: MetisDataSourceDTO = {
-    "id": 1,
+    "id": DS_ID,
     "userId": 1,
     "userFirstName": random_word(10),
     "userLastName": random_word(10),
@@ -47,6 +49,8 @@ PATH_DS_POST_RESPONSE_PAYLOAD: MetisDataSourceDTO = {
     "collections": [],
     "createdAt": dt,
     "updatedAt": dt,
+    "parents": [PARENT_DS_ID],
+    "children": [CHILD_DS_ID],
 }
 PATH_DS_POST_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {"status": 400, "error": "oops"}
 PATH_DS_GET_RESPONSE_PAYLOAD = deepcopy(PATH_DS_POST_RESPONSE_PAYLOAD)
@@ -157,7 +161,7 @@ async def delete_datasource_handler(request: web.Request) -> web.Response:
 async def get_datasource_handler(request: web.Request) -> web.Response:
     "Request handler"
     if request.match_info.get("id") == "2":
-        # stupid wariant of success with error
+        # stupid variant of success with error
         return web.json_response(
             PATH_DS_DELETE_RESPONSE_ERROR404_PAYLOAD, status=HTTPOk.status_code
         )
@@ -249,6 +253,49 @@ async def test_list_datasources(base_url: URL, fail: bool, expected, raises):
 
 
 @pytest.mark.parametrize(
+    "method_name, data_id, fail, expected, raises",
+    [
+        # get()
+        ("get", -1, True, None, pytest.raises(MetisQuotaException)),
+        ("get", DS_ID, False, PATH_DS_GET_RESPONSE_PAYLOAD, does_not_raise()),
+        ("get", PARENT_DS_ID, False, None, does_not_raise()),
+        # get_parents()
+        (
+            "get_parents",
+            CHILD_DS_ID,
+            False,
+            [PATH_DS_GET_RESPONSE_PAYLOAD],
+            does_not_raise(),
+        ),
+        ("get_parents", DS_ID, False, [], does_not_raise()),
+        # get_children()
+        (
+            "get_children",
+            PARENT_DS_ID,
+            False,
+            [PATH_DS_GET_RESPONSE_PAYLOAD],
+            does_not_raise(),
+        ),
+        ("get_children", DS_ID, False, [], does_not_raise()),
+    ],
+)
+async def test_get_datasource(
+    base_url: URL, method_name: str, data_id: int, fail: bool, expected, raises
+):
+    "Test get(), get_parents(), get_children()"
+    with raises:
+        async with MetisAPIAsync(base_url, auth=MetisTokenAuth(str(fail))) as client:
+            method = getattr(client.v0.datasources, method_name)
+            src = await method(data_id)
+        assert src == expected, "Response matches"
+    with raises:
+        client = MetisAPI(base_url, auth=MetisTokenAuth(str(fail)))
+        method = getattr(client.v0.datasources, method_name)
+        src = await asyncio.get_event_loop().run_in_executor(None, method, data_id)
+        assert src == expected, "Response matches"
+
+
+@pytest.mark.parametrize(
     "ds_id, raises",
     [
         (1, does_not_raise()),
@@ -276,15 +323,15 @@ async def test_delete_datasource(
         (3, pytest.raises(MetisNotFoundException)),
     ],
 )
-async def test_get_datasource(
+async def test_get_datasource_contents(
     client: MetisAPI, client_async: MetisAPIAsync, ds_id, raises
 ):
-    "Test get()"
+    "Test get_content()"
     with raises:
-        res = await client_async.v0.datasources.get(ds_id)
+        res = await client_async.v0.datasources.get_content(ds_id)
         assert res == PATH_DS_ID_GET_RESPONSE, "Response matches"
     with raises:
         res = await asyncio.get_event_loop().run_in_executor(
-            None, client.v0.datasources.get, ds_id
+            None, client.v0.datasources.get_content, ds_id
         )
         assert res == PATH_DS_ID_GET_RESPONSE, "Response matches"

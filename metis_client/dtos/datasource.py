@@ -1,6 +1,7 @@
 """Data sources DTOs"""
 
 import sys
+from enum import Enum
 
 from .base import MetisTimestampsDTO
 from .collection import MetisCollectionDTO
@@ -16,10 +17,21 @@ else:  # pragma: no cover
     from typing import TypedDict
 
 
+class DataSourceType(int, Enum):
+    "Data source types"
+    STRUCTURE = 1
+    CALCULATION = 2
+    PROPERTY = 3
+    WORKFLOW = 4
+    PATTERN = 5
+
+
 class MetisDataSourceDTO(MetisTimestampsDTO):
     "Data source DTO"
 
     id: int
+    parents: Sequence[int]
+    children: Sequence[int]
     userId: int
     userFirstName: str
     userLastName: str
