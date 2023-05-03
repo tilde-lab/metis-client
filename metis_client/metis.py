@@ -24,6 +24,7 @@ if sys.version_info < (3, 11):  # pragma: no cover
 else:  # pragma: no cover
     from typing import Concatenate, ParamSpec, Unpack
 
+
 AsyncClientGetter = Callable[[], MetisAPIAsync]
 ReturnT_co = TypeVar("ReturnT_co", covariant=True)
 ParamT = ParamSpec("ParamT")

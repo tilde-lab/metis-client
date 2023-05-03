@@ -7,7 +7,9 @@ import sys
 from metis_client import MetisAPIAsync, MetisTokenAuth
 from metis_client.dtos.calculation import MetisCalculationDTO
 
+
 API_URL = "http://localhost:3000"
+test_engine = "dummy"
 
 try:
     with open(sys.argv[1], encoding="utf-8") as fp:
@@ -20,15 +22,16 @@ except IndexError:
 
 async def on_progress_log(calc: MetisCalculationDTO):
     "Print progress"
-    print("Progress: ", calc.get("progress"))
+    print("Progress:", calc.get("progress"))
 
 
 async def create_calc_then_get_results(client: MetisAPIAsync):
-    "Create data source, run calculation, then wait results"
+    "Create data source, run calculation, then wait for the results"
+
     data = await client.v0.datasources.create(CONTENT)
     assert data
 
-    calc = await client.v0.calculations.create(data.get("id"))
+    calc = await client.v0.calculations.create(data.get("id"), engine=test_engine)
     assert calc
 
     results = await client.v0.calculations.get_results(
@@ -40,12 +43,13 @@ async def create_calc_then_get_results(client: MetisAPIAsync):
 
 
 async def create_calc_and_get_results(client: MetisAPIAsync):
-    "Create data source, run calculation and wait results"
+    "Create data source, run calculation and wait for the results"
+
     data = await client.v0.datasources.create(CONTENT)
     assert data
 
     results = await client.v0.calculations.create_get_results(
-        data["id"], on_progress=on_progress_log
+        data["id"], engine=test_engine, on_progress=on_progress_log
     )
     print(results)
     assert results
@@ -57,6 +61,7 @@ async def create_calc_then_cancel(client: MetisAPIAsync):
     Create data source. Run calculation.
     Stop watching calculation on 50%, cancel calculation.
     """
+
     data = await client.v0.datasources.create(CONTENT)
     assert data
 
@@ -64,7 +69,7 @@ async def create_calc_then_cancel(client: MetisAPIAsync):
         await on_progress_log(calc)
         return calc.get("progress") < 50
 
-    calc = await client.v0.calculations.create(data.get("id"))
+    calc = await client.v0.calculations.create(data.get("id"), engine=test_engine)
     assert calc
 
     results = await client.v0.calculations.get_results(
@@ -79,6 +84,7 @@ async def main():
     "Run all examples"
     async with MetisAPIAsync(API_URL, auth=MetisTokenAuth("admin@test.com")) as client:
         print(await client.v0.auth.whoami())
+        print("The following engines are available:", await client.v0.calculations.get_engines())
 
         await create_calc_then_get_results(client)
         await create_calc_and_get_results(client)

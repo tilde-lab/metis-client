@@ -7,7 +7,9 @@ import sys
 from metis_client import MetisAPI, MetisTokenAuth
 from metis_client.dtos import MetisCalculationDTO
 
+
 API_URL = "http://localhost:3000"
+test_engine = "dummy"
 
 try:
     with open(sys.argv[1], encoding="utf-8") as fp:
@@ -20,15 +22,16 @@ except IndexError:
 
 def on_progress_log(calc: MetisCalculationDTO):
     "Print progress"
-    print("Progress: ", calc.get("progress"))
+    print("Progress:", calc.get("progress"))
 
 
 def create_calc_then_get_results(client: MetisAPI):
-    "Create data source, run calculation, then wait results"
+    "Create data source, run calculation, then wait for the results"
+
     data = client.v0.datasources.create(CONTENT)
     assert data
 
-    calc = client.v0.calculations.create(data.get("id"))
+    calc = client.v0.calculations.create(data.get("id"), engine=test_engine)
     assert calc
 
     results = client.v0.calculations.get_results(
@@ -40,12 +43,13 @@ def create_calc_then_get_results(client: MetisAPI):
 
 
 def create_calc_and_get_results(client: MetisAPI):
-    "Create data source, run calculation and wait results"
+    "Create data source, run calculation and wait for the results"
+
     data = client.v0.datasources.create(CONTENT)
     assert data
 
     results = client.v0.calculations.create_get_results(
-        data["id"], on_progress=on_progress_log
+        data["id"], engine=test_engine, on_progress=on_progress_log
     )
     print(results)
     assert results
@@ -57,6 +61,7 @@ def create_calc_then_cancel(client: MetisAPI):
     Create data source. Run calculation.
     Stop watching calculation on 50%, cancel calculation.
     """
+
     data = client.v0.datasources.create(CONTENT)
     assert data
 
@@ -64,7 +69,7 @@ def create_calc_then_cancel(client: MetisAPI):
         on_progress_log(calc)
         return calc.get("progress") < 50
 
-    calc = client.v0.calculations.create(data.get("id"))
+    calc = client.v0.calculations.create(data.get("id"), engine=test_engine)
     assert calc
 
     results = client.v0.calculations.get_results(
@@ -77,9 +82,11 @@ def create_calc_then_cancel(client: MetisAPI):
 
 def main():
     "Run all examples"
+
     client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
 
     print(client.v0.auth.whoami())
+    print("The following engines are available:", client.v0.calculations.get_engines())
 
     create_calc_then_get_results(client)
     create_calc_and_get_results(client)

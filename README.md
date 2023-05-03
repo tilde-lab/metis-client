@@ -13,18 +13,18 @@ This library allows for programmatic interactions with the [Metis infrastructure
 
 ## Usage
 
-There are two client flavors - asyncronous `asyncio` client
-and simplified synchronous client.
+There are two client flavors: **asyncronous** `asyncio` client
+and simplified **synchronous** client.
 
 ### Asynchronous client
 
-There is a asynchronous client `MetisAPIAsync`. Example of usage:
+An asynchronous client is `MetisAPIAsync`. Example of usage:
 
 ```python
 from metis_client import MetisAPIAsync, MetisTokenAuth
 
 async def main():
-    async with MetisAPIAsync(API_URL, auth=MetisTokenAuth("admin@test.com")) as client:
+    async with MetisAPIAsync(API_URL, auth=MetisTokenAuth("VERY_SECRET_TOKEN")) as client:
         print(await client.v0.auth.whoami())
         data = await client.v0.datasources.create(content)
         results = await client.v0.calculations.create_get_results(data["id"])
@@ -35,16 +35,19 @@ See `examples` directory for more examples.
 
 ### Synchronous client
 
-There is a synchronous client `MetisAPI`. Example of usage:
+A synchronous client is `MetisAPI`. Example of usage:
 
 ```python
 from metis_client import MetisAPI, MetisTokenAuth
 
-client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
+client = MetisAPI(API_URL, auth=MetisTokenAuth("VERY_SECRET_TOKEN"))
 data = client.v0.datasources.create(content)
 results = client.v0.calculations.create_get_results(data["id"])
 print(results)
 ```
+
+NB in development one can replace a `VERY_SECRET_TOKEN` string with the development user email, e.g.
+`admin@test.com` (refer to **users_emails** BFF table).
 
 ## License
 
@@ -53,4 +56,4 @@ Author Sergey Korolev, Tilde Materials Informatics
 Copyright 2023 BASF SE
 
 BSD 3-Clause
-  * [ ] 
+  * [ ]
