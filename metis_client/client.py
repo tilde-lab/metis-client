@@ -55,7 +55,7 @@ class ClientRequestKwargs(TypedDict):
 class MetisClient(MetisBase):
     """
     Client to handle API calls.
-    Don't use this directly, use `metis_client.metis.Metis` to get the client.
+    Don't use this directly, use `metis_client.metis.Metis` instead to get the client.
     """
 
     _auth: BaseAuthenticator

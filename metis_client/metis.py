@@ -85,17 +85,17 @@ class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
         fmt: Optional[str] = None,
         name: Optional[str] = None,
     ):
-        "Create data source and wait for result"
+        "Create data source and wait for the result"
         return await client.v0.datasources.create(content, fmt, name)
 
     @to_sync_with_metis_client
     async def delete(self, client: MetisAPIAsync, data_id: int):
-        "Delete data source by id and wait for result"
+        "Delete data source by id and wait for the result"
         return await client.v0.datasources.delete(data_id)
 
     @to_sync_with_metis_client
     async def list(self, client: MetisAPIAsync):
-        "List data sources and wait for result"
+        "List data sources and wait for the result"
         return await client.v0.datasources.list()
 
     @to_sync_with_metis_client
@@ -130,13 +130,19 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
 
     @to_sync_with_metis_client
     async def cancel(self, client: MetisAPIAsync, calc_id: int):
-        "Cancel calculation and wait for result"
+        "Cancel calculation and wait for the result"
         return await client.v0.calculations.cancel(calc_id)
 
     @to_sync_with_metis_client
-    async def create(self, client: MetisAPIAsync, data_id: int, engine: str = "dummy"):
-        "Create calculation and wait for result"
-        return await client.v0.calculations.create(data_id, engine)
+    async def create(
+        self,
+        client: MetisAPIAsync,
+        data_id: int,
+        engine: str = "dummy",
+        input: Optional[str] = None,
+    ):
+        "Create calculation and wait for the result"
+        return await client.v0.calculations.create(data_id, engine, input)
 
     @to_sync_with_metis_client
     async def get_results(
@@ -154,11 +160,12 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
         client: MetisAPIAsync,
         data_id: int,
         engine: str = "dummy",
+        input: Optional[str] = None,
         on_progress: Optional[MetisCalculationOnProgressT] = None,
     ):
         "Create calculation, wait done and get results"
         return await client.v0.calculations.create_get_results(
-            data_id, engine, on_progress
+            data_id, engine, input, on_progress
         )
 
     @to_sync_with_metis_client
@@ -168,7 +175,7 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
 
     @to_sync_with_metis_client
     async def list(self, client: MetisAPIAsync):
-        "List all user's calculations and wait for result"
+        "List all user's calculations and wait for the result"
         return await client.v0.calculations.list()
 
     @to_sync_with_metis_client
@@ -188,17 +195,17 @@ class MetisCollectionsNamespaceSync(MetisNamespaceSyncBase):
         title: str,
         **opts: Unpack[MetisCollectionsCreateKwargs],
     ):
-        "Create collection and wait for result"
+        "Create collection and wait for the result"
         return await client.v0.collections.create(type_id, title, **opts)
 
     @to_sync_with_metis_client
     async def list(self, client: MetisAPIAsync):
-        "List user's collections by criteria and wait for result"
+        "List user's collections by criteria and wait for the result"
         return await client.v0.collections.list()
 
     @to_sync_with_metis_client
     async def delete(self, client: MetisAPIAsync, collection_id: int):
-        "Remove a collection by id and wait for result"
+        "Remove a collection by id and wait for the result"
         return await client.v0.collections.delete(collection_id)
 
 
