@@ -47,7 +47,10 @@ class MetisCalculationsNamespace(BaseNamespace):
         )
 
     async def create_event(
-        self, data_id: int, engine: str = "dummy", input: Optional[str] = None
+        self,
+        data_id: int,
+        engine: str = "dummy",
+        input: Optional[str] = None,  # pylint: disable=redefined-builtin
     ) -> MetisRequestIdDTO:
         "Create calculation"
         async with await self._client.request(
@@ -59,11 +62,15 @@ class MetisCalculationsNamespace(BaseNamespace):
             return await resp.json()
 
     async def create(
-        self, data_id: int, engine: str = "dummy", input: Optional[str] = None,
+        self,
+        data_id: int,
+        engine: str = "dummy",
+        input: Optional[str] = None,  # pylint: disable=redefined-builtin
     ) -> Optional[MetisCalculationDTO]:
         "Create calculation and wait for result"
         evt = await act_and_get_result_from_stream(
-            self._root.stream.subscribe, partial(self.create_event, data_id, engine, input)
+            self._root.stream.subscribe,
+            partial(self.create_event, data_id, engine, input),
         )
         if evt["type"] == "calculations":
             data = sorted(
@@ -147,7 +154,7 @@ class MetisCalculationsNamespace(BaseNamespace):
         self,
         data_id: int,
         engine: str = "dummy",
-        input: Optional[str] = None,
+        input: Optional[str] = None,  # pylint: disable=redefined-builtin
         on_progress: Optional[MetisCalculationOnProgressT] = None,
     ) -> Optional[Sequence[MetisDataSourceDTO]]:
         "Create calculation, wait done and get results"
