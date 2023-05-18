@@ -16,7 +16,6 @@ from metis_client.dtos.auth import MetisAuthCredentialsRequestDTO
 from metis_client.exc import MetisAuthenticationException
 from tests.helpers import random_word
 
-
 dt = datetime.fromordinal(1)
 TOKEN = random_word(10)
 PATH_AUTH = "/v0/auth"
