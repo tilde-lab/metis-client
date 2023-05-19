@@ -56,4 +56,3 @@ Author Sergey Korolev, Tilde Materials Informatics
 Copyright 2023 BASF SE
 
 BSD 3-Clause
-  * [ ]
