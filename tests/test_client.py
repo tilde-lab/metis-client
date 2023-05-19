@@ -209,12 +209,12 @@ async def test_client_payload_error(
     assert (
         "Broken" in exc_info.value.args[0]
     ), "MetisClient should handle ClientPayloadError"
+    query = {
+        "status_code": HTTPOk.status_code,
+        "content_type": "application/json",
+        "body": random_word(10),
+    }
     with pytest.raises(MetisException) as exc_info:
-        query = {
-            "status_code": HTTPOk.status_code,
-            "content_type": "application/json",
-            "body": random_word(10),
-        }
         await client.request(URL(PATH_ECHO_STATUS).with_query(query))
     assert (
         "Broken" in exc_info.value.args[0]
@@ -259,17 +259,17 @@ async def test_http_status(
         return URL(PATH_ECHO_STATUS).with_query(query)
 
     if status == HTTPBadRequest:
+        body = random_word(16)
+        url = get_url(status.status_code, "text/plain", body)
         with pytest.raises(exception):
-            body = random_word(16)
-            url = get_url(status.status_code, "text/plain", body)
             await client.request(url)
+        body = {"error": random_word(16)}
+        url = get_url(
+            HTTPBadRequest.status_code,
+            content_type="application/json",
+            body=json.dumps(body),
+        )
         with pytest.raises(exception):
-            body = {"error": random_word(16)}
-            url = get_url(
-                HTTPBadRequest.status_code,
-                content_type="application/json",
-                body=json.dumps(body),
-            )
             await client.request(url)
     else:
         with pytest.raises(exception):
@@ -367,8 +367,8 @@ async def test_sse_response_errors(
     with suppress(asyncio.TimeoutError):
         await asyncio.wait_for(task, 0.01)
 
+    query = {"force_status": HTTPNotFound.status_code}
     with pytest.raises(MetisNotFoundException):
-        query = {"force_status": HTTPNotFound.status_code}
         await asyncio.create_task(
             client.sse(URL(PATH_SSE_SIMPLE).with_query(query), on_message)
         )

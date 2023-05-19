@@ -139,7 +139,7 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
         client: MetisAPIAsync,
         data_id: int,
         engine: str = "dummy",
-        input: Optional[str] = None,
+        input: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
         "Create calculation and wait for the result"
         return await client.v0.calculations.create(data_id, engine, input)
@@ -160,7 +160,7 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
         client: MetisAPIAsync,
         data_id: int,
         engine: str = "dummy",
-        input: Optional[str] = None,
+        input: Optional[str] = None,  # pylint: disable=redefined-builtin
         on_progress: Optional[MetisCalculationOnProgressT] = None,
     ):
         "Create calculation, wait done and get results"

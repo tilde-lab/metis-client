@@ -7,9 +7,8 @@ import sys
 from metis_client import MetisAPI, MetisTokenAuth
 from metis_client.dtos import MetisCalculationDTO
 
-
 API_URL = "http://localhost:3000"
-test_engine = "dummy"
+TEST_ENGINE = "dummy"
 
 try:
     with open(sys.argv[1], encoding="utf-8") as fp:
@@ -31,7 +30,7 @@ def create_calc_then_get_results(client: MetisAPI):
     data = client.v0.datasources.create(CONTENT)
     assert data
 
-    calc = client.v0.calculations.create(data.get("id"), engine=test_engine)
+    calc = client.v0.calculations.create(data.get("id"), engine=TEST_ENGINE)
     assert calc
 
     results = client.v0.calculations.get_results(
@@ -49,7 +48,7 @@ def create_calc_and_get_results(client: MetisAPI):
     assert data
 
     results = client.v0.calculations.create_get_results(
-        data["id"], engine=test_engine, on_progress=on_progress_log
+        data["id"], engine=TEST_ENGINE, on_progress=on_progress_log
     )
     print(results)
     assert results
@@ -69,7 +68,7 @@ def create_calc_then_cancel(client: MetisAPI):
         on_progress_log(calc)
         return calc.get("progress") < 50
 
-    calc = client.v0.calculations.create(data.get("id"), engine=test_engine)
+    calc = client.v0.calculations.create(data.get("id"), engine=TEST_ENGINE)
     assert calc
 
     results = client.v0.calculations.get_results(

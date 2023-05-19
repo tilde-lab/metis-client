@@ -272,6 +272,7 @@ async def test_get_results(
                 client.v0.calculations.create_get_results,
                 DS_ID,
                 "results",
+                None,
                 on_progress,
             )
         else:
@@ -285,7 +286,7 @@ async def test_get_results(
     else:
         if create:
             results = await client_async.v0.calculations.create_get_results(
-                DS_ID, "results", async_on_progress
+                DS_ID, "results", None, async_on_progress
             )
         else:
             calc = await client_async.v0.calculations.create(DS_ID, "results")
