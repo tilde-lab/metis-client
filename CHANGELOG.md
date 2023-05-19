@@ -1,3 +1,9 @@
+## v0.3.0 (2023-05-19)
+
+### Feat
+
+- *input* calculation parameter support
+
 ## v0.2.0 (2023-05-02)
 
 ### Feat
