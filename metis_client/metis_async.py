@@ -2,7 +2,7 @@
 
 import sys
 from types import TracebackType
-from typing import Optional, Type
+from typing import Literal, Optional, Type, Union
 
 import aiohttp
 from aiohttp import ClientSession, ClientTimeout, TraceConfig
@@ -32,7 +32,7 @@ class MetisAPIKwargs(TypedDict):
     "MetisAPI init kwargs"
     auth: BaseAuthenticator
     headers: NotRequired[LooseHeaders]
-    timeout: NotRequired[int]
+    timeout: NotRequired[Union[float, Literal[False], None]]
     client_name: NotRequired[str]
     trace_configs: NotRequired[List[TraceConfig]]
 
@@ -65,8 +65,8 @@ class MetisAPIAsync(MetisBase):
         Optional dictionary of always sent headers. Used if `session` is omitted.
 
         `timeout` (Optional)
-        Optional integer of global timeout in seconds or `aiohttp.ClientTimeout`.
-        Used if `session` is omitted.
+        Optional float timeout in seconds. None if not timeout. False if not set.
+        Used as `aiohttp` timeout if `session` is omitted.
 
         `client_name` (Optional)
         Optional string for user agent.
@@ -74,11 +74,11 @@ class MetisAPIAsync(MetisBase):
         """
         headers = opts.get("headers")
         if session is None:
-            timeout = opts.get("timeout")
+            timeout = opts.get("timeout", None)
             session = aiohttp.ClientSession(
                 timeout=timeout
                 if isinstance(timeout, ClientTimeout)
-                else ClientTimeout(total=timeout),
+                else ClientTimeout(total=timeout or None),
                 headers=headers,
                 trace_configs=opts.get("trace_configs"),
             )

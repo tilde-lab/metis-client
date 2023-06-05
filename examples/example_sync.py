@@ -2,6 +2,7 @@
 """Example of usage of synchronous client"""
 # pylint: disable=no-value-for-parameter
 
+import asyncio
 import sys
 
 from metis_client import MetisAPI, MetisTokenAuth
@@ -79,10 +80,31 @@ def create_calc_then_cancel(client: MetisAPI):
     print("=" * 50 + "Test passed")
 
 
+def create_calc_timeout_cancel(client: MetisAPI):
+    """
+    Create data source. Run calculation.
+    Cancel calculation on timeout.
+    """
+
+    data = client.v0.datasources.create(CONTENT)
+    assert data
+
+    calc = client.v0.calculations.create(data.get("id"), engine=TEST_ENGINE)
+    assert calc
+
+    try:
+        results = client.v0.calculations.get_results(calc["id"], timeout=1)
+        assert results is None
+    except asyncio.TimeoutError:
+        print("Timeouted as planned")
+        client.v0.calculations.cancel(calc["id"])
+    print("=" * 50 + "Test passed")
+
+
 def main():
     "Run all examples"
 
-    client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
+    client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"), timeout=60)
 
     print(client.v0.auth.whoami())
     print("The following engines are available:", client.v0.calculations.get_engines())
@@ -90,6 +112,7 @@ def main():
     create_calc_then_get_results(client)
     create_calc_and_get_results(client)
     create_calc_then_cancel(client)
+    create_calc_timeout_cancel(client)
 
 
 main()

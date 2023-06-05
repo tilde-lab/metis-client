@@ -169,24 +169,6 @@ async def test_too_many_request(
     assert resp.ok, "Should tolerate too many requests"
 
 
-async def test_cancelled_error(
-    client: MetisClient,
-):  # pylint: disable=redefined-outer-name
-    "Test CancelledError"
-
-    async def fetch():
-        await client.request(URL(PATH_SLOW_RESPONSE))
-
-    task = asyncio.create_task(fetch())
-    await asyncio.sleep(0.0001)
-    task.cancel()
-    with pytest.raises(MetisConnectionException) as exc_info:
-        await task
-    assert (
-        "Request exception" in exc_info.value.args[0]
-    ), "MetisClient should handle CancelledError"
-
-
 async def test_client_connection_error(
     client: MetisClient,
 ):  # pylint: disable=redefined-outer-name

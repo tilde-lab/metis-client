@@ -84,10 +84,7 @@ class MetisSubscription(MetisBase):
 
     @asynccontextmanager
     async def _cm(self):
-        try:
-            yield await self.queue.get()
-        finally:
-            self.queue.task_done()
+        yield await self.queue.get()
 
     async def __anext__(self) -> MetisEventDTO:
         async with self._cm() as msg:

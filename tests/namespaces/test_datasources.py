@@ -5,12 +5,14 @@ import json
 from contextlib import nullcontext as does_not_raise
 from copy import deepcopy
 from datetime import datetime
+from functools import partial
 from typing import List
 
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
 from aiohttp.web_exceptions import HTTPNotFound, HTTPOk
+from freezegun import freeze_time
 from yarl import URL
 
 from metis_client import MetisAPI, MetisAPIAsync, MetisTokenAuth
@@ -124,6 +126,9 @@ async def list_datasources_handler(request: web.Request) -> web.Response:
     "Request handler"
     auth_header = request.headers.get("Authorization", "")
     body: MetisRequestIdDTO = {"reqId": random_word(10)}
+
+    if auth_header == "Bearer slow":
+        await asyncio.sleep(10)
 
     if auth_header != f"Bearer {str(True)}":
         ds_dto = {
@@ -250,6 +255,16 @@ async def test_list_datasources(base_url: URL, fail: bool, expected, raises):
             None, client.v0.datasources.list
         )
         assert src == expected, "Response matches"
+
+
+@freeze_time("1970-01-01", auto_tick_seconds=10)
+async def test_timeout(base_url: URL, client: MetisAPI):
+    "Test timeout"
+    client = MetisAPI(base_url, auth=MetisTokenAuth("slow"))
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.get_event_loop().run_in_executor(
+            None, partial(client.v0.datasources.list, timeout=1)
+        )
 
 
 @pytest.mark.parametrize(

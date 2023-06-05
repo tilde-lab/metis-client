@@ -79,6 +79,29 @@ async def create_calc_then_cancel(client: MetisAPIAsync):
     print("=" * 50 + "Test passed")
 
 
+async def create_calc_timeout_cancel(client: MetisAPIAsync):
+    """
+    Create data source. Run calculation.
+    Cancel calculation on timeout.
+    """
+
+    data = await client.v0.datasources.create(CONTENT)
+    assert data
+
+    calc = await client.v0.calculations.create(data.get("id"), engine=TEST_ENGINE)
+    assert calc
+
+    try:
+        results = await asyncio.wait_for(
+            client.v0.calculations.get_results(calc["id"]), timeout=0.1
+        )
+        assert results is None
+    except asyncio.TimeoutError:
+        print("Timeouted as planned")
+        await client.v0.calculations.cancel(calc["id"])
+    print("=" * 50 + "Test passed")
+
+
 async def main():
     "Run all examples"
     async with MetisAPIAsync(API_URL, auth=MetisTokenAuth("admin@test.com")) as client:
@@ -91,6 +114,7 @@ async def main():
         await create_calc_then_get_results(client)
         await create_calc_and_get_results(client)
         await create_calc_then_cancel(client)
+        await create_calc_timeout_cancel(client)
 
 
 asyncio.run(main())
