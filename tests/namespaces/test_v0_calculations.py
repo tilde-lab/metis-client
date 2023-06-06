@@ -19,7 +19,12 @@ from metis_client.dtos.datasource import DataSourceType
 from metis_client.exc import MetisPayloadException, MetisQuotaException
 from metis_client.models import MetisMessageEvent
 from tests.helpers import random_word
-from tests.namespaces.test_datasources import (
+from tests.namespaces.test_calculations import (
+    PATH_C_ENGINES,
+    PATH_C_GET_ENGINES_RESPONSE,
+    get_engines_handler,
+)
+from tests.namespaces.test_v0_datasources import (
     DS_ID,
     PATH_DS_POST_RESPONSE_PAYLOAD,
     make_datasources_event,
@@ -32,7 +37,6 @@ PATH_STREAM = "/stream"
 PATH_PING = "/v0"
 PATH_C = "/v0/calculations"
 PATH_C_ID = "/v0/calculations/{id}"
-PATH_C_ENGINES = "/v0/calculations/engines"
 PATH_C_POST_RESPONSE_PAYLOAD: MetisCalculationDTO = {
     "id": CALC_ID,
     "name": random_word(10),
@@ -51,7 +55,6 @@ PATH_C_DELETE_RESPONSE_ERROR404_PAYLOAD = {
     "status": HTTPNotFound.status_code,
     "error": "not found",
 }
-PATH_C_GET_ENGINES_RESPONSE = ["dummy", "other"]
 
 event_stream: List[MetisMessageEvent] = []
 
@@ -171,11 +174,6 @@ async def cancel_calculations_handler(request: web.Request) -> web.Response:
     event_stream.append(evt)
 
     return web.json_response(body, status=HTTPOk.status_code)
-
-
-async def get_engines_handler(_: web.Request) -> web.Response:
-    "Request handler"
-    return web.json_response(PATH_C_GET_ENGINES_RESPONSE, status=HTTPOk.status_code)
 
 
 async def create_app() -> web.Application:
@@ -367,9 +365,11 @@ async def test_cancel_calculation(
 
 async def test_get_engines(client: MetisAPI, client_async: MetisAPIAsync):
     "Test get_engines()"
-    en_async = await client_async.v0.calculations.get_engines()
-    en_sync = await asyncio.get_event_loop().run_in_executor(
-        None, client.v0.calculations.get_engines
-    )
+    with pytest.warns(DeprecationWarning):
+        en_async = await client_async.v0.calculations.get_engines()
+    with pytest.warns(DeprecationWarning):
+        en_sync = await asyncio.get_event_loop().run_in_executor(
+            None, client.v0.calculations.get_engines
+        )
     assert en_async == en_sync, "Response matches"
     assert en_sync == PATH_C_GET_ENGINES_RESPONSE, "Response matches"

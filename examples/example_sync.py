@@ -85,7 +85,7 @@ def main():
     client = MetisAPI(API_URL, auth=MetisTokenAuth("admin@test.com"))
 
     print(client.v0.auth.whoami())
-    print("The following engines are available:", client.v0.calculations.get_engines())
+    print("The following engines are available:", client.calculations.supported())
 
     create_calc_then_get_results(client)
     create_calc_and_get_results(client)

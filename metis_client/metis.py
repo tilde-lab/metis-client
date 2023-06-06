@@ -60,6 +60,15 @@ def to_sync_with_metis_client(
     return cast(Any, async_to_sync(inner))
 
 
+class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
+    """Calculations endpoints namespace"""
+
+    @to_sync_with_metis_client
+    async def supported(self, client: MetisAPIAsync):
+        "Get supported calculation engines"
+        return await client.calculations.supported()
+
+
 class MetisV0AuthNamespaceSync(MetisNamespaceSyncBase):
     """Authentication endpoints namespace"""
 
@@ -246,7 +255,17 @@ class MetisAPI(MetisBase):
         `client_name` (Optional)
         Optional string for user agent.
         """
+        self._ns_calculations = MetisCalculationsNamespaceSync(
+            partial(MetisAPIAsync, base_url, **opts)
+        )
         self._ns_v0 = MetisV0NamespaceSync(partial(MetisAPIAsync, base_url, **opts))
+
+    @property
+    def calculations(
+        self,
+    ) -> MetisCalculationsNamespaceSync:  # pylint: disable=invalid-name
+        """Property to access the calculations namespace."""
+        return self._ns_calculations
 
     @property
     def v0(self) -> MetisV0NamespaceSync:  # pylint: disable=invalid-name

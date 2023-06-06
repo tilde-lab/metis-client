@@ -85,7 +85,7 @@ async def main():
         print(await client.v0.auth.whoami())
         print(
             "The following engines are available:",
-            await client.v0.calculations.get_engines(),
+            await client.calculations.supported(),
         )
 
         await create_calc_then_get_results(client)

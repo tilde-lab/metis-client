@@ -4,6 +4,7 @@ from datetime import datetime
 from functools import partial
 from inspect import iscoroutinefunction
 from typing import Awaitable, Callable, Optional, Union, cast
+from warnings import warn
 
 from ..dtos import (
     DataSourceType,
@@ -167,12 +168,12 @@ class MetisV0CalculationsNamespace(BaseNamespace):
     @raise_on_metis_error
     async def get_engines(self) -> Sequence[str]:
         "Get supported calculation engines"
-        async with await self._client.request(
-            method="GET",
-            url=self._base_url / "engines",
-            auth_required=False,
-        ) as resp:
-            return await resp.json()
+        msg = (
+            "v0.calculations.get_engines() is deprecated; "
+            "please, use calculations.supported() instead"
+        )
+        warn(DeprecationWarning(msg))
+        return await self._root.calculations.supported()
 
     async def list_event(self) -> MetisRequestIdDTO:
         "List all user's calculations"

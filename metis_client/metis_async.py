@@ -13,6 +13,7 @@ from yarl import URL
 from .client import MetisClient
 from .const import DEFAULT_USER_AGENT
 from .models import BaseAuthenticator, MetisBase
+from .namespaces.calculations import MetisCalculationsNamespace
 from .namespaces.root import MetisRootNamespace
 from .namespaces.stream import MetisStreamNamespace
 from .namespaces.v0 import MetisV0Namespace
@@ -91,6 +92,13 @@ class MetisAPIAsync(MetisBase):
             raise TypeError("Base URL should be absolute")
         client = MetisClient(session, base_url, opts["auth"])
         self._ns_root = MetisRootNamespace(client, base_url)
+
+    @property
+    def calculations(
+        self,
+    ) -> MetisCalculationsNamespace:  # pylint: disable=invalid-name
+        """Property to access the calculations namespace."""
+        return self._ns_root.calculations
 
     @property
     def v0(self) -> MetisV0Namespace:  # pylint: disable=invalid-name
