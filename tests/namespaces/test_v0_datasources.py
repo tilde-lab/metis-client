@@ -1,4 +1,4 @@
-"Test MetisDatasourcesNamespace"
+"Test MetisV0DatasourcesNamespace"
 
 import asyncio
 import json

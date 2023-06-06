@@ -5,7 +5,7 @@ from ..helpers import dict_dt_from_dt_str, raise_on_metis_error
 from .base import BaseNamespace
 
 
-class MetisAuthNamespace(BaseNamespace):
+class MetisV0AuthNamespace(BaseNamespace):
     """Authentication endpoints namespace"""
 
     @raise_on_metis_error

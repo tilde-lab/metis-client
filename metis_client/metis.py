@@ -11,8 +11,8 @@ from metis_client.dtos.datasource import MetisDataSourceDTO
 
 from .metis_async import MetisAPIAsync, MetisAPIKwargs
 from .models.base import MetisBase
-from .namespaces.calculations import MetisCalculationOnProgressT
-from .namespaces.collections import MetisCollectionsCreateKwargs
+from .namespaces.v0_calculations import MetisCalculationOnProgressT
+from .namespaces.v0_collections import MetisCollectionsCreateKwargs
 
 if sys.version_info < (3, 9):  # pragma: no cover
     from typing import Awaitable, Callable
@@ -60,7 +60,7 @@ def to_sync_with_metis_client(
     return cast(Any, async_to_sync(inner))
 
 
-class MetisAuthNamespaceSync(MetisNamespaceSyncBase):
+class MetisV0AuthNamespaceSync(MetisNamespaceSyncBase):
     """Authentication endpoints namespace"""
 
     @to_sync_with_metis_client
@@ -74,7 +74,7 @@ class MetisAuthNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.auth.whoami()
 
 
-class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
+class MetisV0DatasourcesNamespaceSync(MetisNamespaceSyncBase):
     """Datasources endpoints namespace"""
 
     @to_sync_with_metis_client
@@ -125,7 +125,7 @@ class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.datasources.get_content(data_id)
 
 
-class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
+class MetisV0CalculationsNamespaceSync(MetisNamespaceSyncBase):
     """Calculations endpoints namespace"""
 
     @to_sync_with_metis_client
@@ -184,7 +184,7 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.calculations.get(calc_id)
 
 
-class MetisCollectionsNamespaceSync(MetisNamespaceSyncBase):
+class MetisV0CollectionsNamespaceSync(MetisNamespaceSyncBase):
     """Collections endpoints namespace"""
 
     @to_sync_with_metis_client
@@ -215,10 +215,10 @@ class MetisV0NamespaceSync(MetisNamespaceSyncBase):
 
     def __init__(self, client_getter: AsyncClientGetter):
         super().__init__(client_getter)
-        self.auth = MetisAuthNamespaceSync(client_getter)
-        self.calculations = MetisCalculationsNamespaceSync(client_getter)
-        self.collections = MetisCollectionsNamespaceSync(client_getter)
-        self.datasources = MetisDatasourcesNamespaceSync(client_getter)
+        self.auth = MetisV0AuthNamespaceSync(client_getter)
+        self.calculations = MetisV0CalculationsNamespaceSync(client_getter)
+        self.collections = MetisV0CollectionsNamespaceSync(client_getter)
+        self.datasources = MetisV0DatasourcesNamespaceSync(client_getter)
 
 
 class MetisAPI(MetisBase):

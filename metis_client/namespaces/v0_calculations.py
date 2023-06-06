@@ -28,7 +28,7 @@ MetisCalculationOnProgressT = Callable[
 ]
 
 
-class MetisCalculationsNamespace(BaseNamespace):
+class MetisV0CalculationsNamespace(BaseNamespace):
     """Calculations endpoints namespace"""
 
     async def cancel_event(self, calc_id: int) -> MetisRequestIdDTO:

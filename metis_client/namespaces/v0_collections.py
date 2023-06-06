@@ -21,13 +21,13 @@ else:  # pragma: no cover
 
 
 class MetisCollectionsCreateKwargs(TypedDict):
-    "MetisCollectionsNamespace.create kwargs"
+    "MetisV0CollectionsNamespace.create kwargs"
     description: NotRequired[str]
     data_source_ids: NotRequired[Sequence[int]]
     user_ids: NotRequired[Sequence[int]]
 
 
-class MetisCollectionsNamespace(BaseNamespace):
+class MetisV0CollectionsNamespace(BaseNamespace):
     """Collections endpoints namespace"""
 
     async def create_event(
