@@ -16,7 +16,7 @@ else:  # pragma: no cover
     from collections.abc import Sequence
 
 
-class MetisDatasourcesNamespace(BaseNamespace):
+class MetisV0DatasourcesNamespace(BaseNamespace):
     """Datasources endpoints namespace"""
 
     async def create_event(

@@ -12,8 +12,8 @@ from metis_client.dtos.datasource import MetisDataSourceDTO
 
 from .metis_async import MetisAPIAsync, MetisAPIKwargs
 from .models.base import MetisBase
-from .namespaces.calculations import MetisCalculationOnProgressT
-from .namespaces.collections import MetisCollectionsCreateKwargs
+from .namespaces.v0_calculations import MetisCalculationOnProgressT
+from .namespaces.v0_collections import MetisCollectionsCreateKwargs
 
 if sys.version_info < (3, 9):  # pragma: no cover
     from typing import Awaitable, Callable
@@ -77,7 +77,16 @@ def to_sync_with_metis_client(
     return cast(Any, async_to_sync(inner))
 
 
-class MetisAuthNamespaceSync(MetisNamespaceSyncBase):
+class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
+    """Calculations endpoints namespace"""
+
+    @to_sync_with_metis_client
+    async def supported(self, client: MetisAPIAsync):
+        "Get supported calculation engines"
+        return await client.calculations.supported()
+
+
+class MetisV0AuthNamespaceSync(MetisNamespaceSyncBase):
     """Authentication endpoints namespace"""
 
     # pylint: disable=unused-argument
@@ -99,7 +108,7 @@ class MetisAuthNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.auth.whoami()
 
 
-class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
+class MetisV0DatasourcesNamespaceSync(MetisNamespaceSyncBase):
     """Datasources endpoints namespace"""
 
     # pylint: disable=unused-argument
@@ -157,7 +166,7 @@ class MetisDatasourcesNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.datasources.get_content(data_id)
 
 
-class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
+class MetisV0CalculationsNamespaceSync(MetisNamespaceSyncBase):
     """Calculations endpoints namespace"""
 
     # pylint: disable=unused-argument
@@ -225,7 +234,7 @@ class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):
         return await client.v0.calculations.get(calc_id)
 
 
-class MetisCollectionsNamespaceSync(MetisNamespaceSyncBase):
+class MetisV0CollectionsNamespaceSync(MetisNamespaceSyncBase):
     """Collections endpoints namespace"""
 
     # pylint: disable=unused-argument
@@ -263,12 +272,12 @@ class MetisV0NamespaceSync(MetisNamespaceSyncBase):
         self, client_getter: AsyncClientGetter, default_timeout: Optional[float] = False
     ):
         super().__init__(client_getter, default_timeout)
-        self.auth = MetisAuthNamespaceSync(client_getter, default_timeout)
-        self.calculations = MetisCalculationsNamespaceSync(
+        self.auth = MetisV0AuthNamespaceSync(client_getter, default_timeout)
+        self.calculations = MetisV0CalculationsNamespaceSync(
             client_getter, default_timeout
         )
-        self.collections = MetisCollectionsNamespaceSync(client_getter, default_timeout)
-        self.datasources = MetisDatasourcesNamespaceSync(client_getter, default_timeout)
+        self.collections = MetisV0CollectionsNamespaceSync(client_getter, default_timeout)
+        self.datasources = MetisV0DatasourcesNamespaceSync(client_getter, default_timeout)
 
 
 class MetisAPI(MetisBase):
@@ -300,9 +309,19 @@ class MetisAPI(MetisBase):
         Optional string for user agent.
         """
         timeout = opts.get("timeout", None)
+        self._ns_calculations = MetisCalculationsNamespaceSync(
+            partial(MetisAPIAsync, base_url, **opts), timeout
+        )
         self._ns_v0 = MetisV0NamespaceSync(
             partial(MetisAPIAsync, base_url, **opts), timeout
         )
+
+    @property
+    def calculations(
+        self,
+    ) -> MetisCalculationsNamespaceSync:  # pylint: disable=invalid-name
+        """Property to access the calculations namespace."""
+        return self._ns_calculations
 
     @property
     def v0(self) -> MetisV0NamespaceSync:  # pylint: disable=invalid-name

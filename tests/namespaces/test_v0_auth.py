@@ -1,4 +1,4 @@
-"Test MetisAuthNamespace"
+"Test MetisV0AuthNamespace"
 
 import asyncio
 from copy import deepcopy
