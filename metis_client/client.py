@@ -141,7 +141,7 @@ class MetisClient(MetisBase):
                 result.close()
                 return await self._request(url, **opts)
 
-        except (CancelledError, ClientConnectionError) as exc:
+        except ClientConnectionError as exc:
             raise MetisConnectionException(
                 f"Request exception for {str(url)!r} with - {exc}"
             ) from exc

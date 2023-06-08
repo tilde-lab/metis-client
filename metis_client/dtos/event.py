@@ -80,6 +80,7 @@ class MetisCollectionsEventDTO(TypedDict):
     data: MetisCollectionsEventDataDTO
 
 
+# pylint: disable=invalid-name
 MetisEventDTO = Union[
     MetisCalculationsEventDTO,
     MetisCollectionsEventDTO,

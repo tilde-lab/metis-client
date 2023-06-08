@@ -60,6 +60,8 @@ class MetisStreamNamespace(BaseNamespace):
         "Close background stream consumer"
         if self._stream_task:
             self._stream_task.cancel()
+        if self._sse_client_task:
+            self._sse_client_task.cancel()
 
     def subscribe(self, predicate: Optional[Callable[[MetisEventDTO], bool]] = None):
         "Subscribe to stream"

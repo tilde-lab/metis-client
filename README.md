@@ -40,9 +40,9 @@ A synchronous client is `MetisAPI`. Example of usage:
 ```python
 from metis_client import MetisAPI, MetisTokenAuth
 
-client = MetisAPI(API_URL, auth=MetisTokenAuth("VERY_SECRET_TOKEN"))
+client = MetisAPI(API_URL, auth=MetisTokenAuth("VERY_SECRET_TOKEN"), timeout=5)
 data = client.v0.datasources.create(content)
-results = client.v0.calculations.create_get_results(data["id"])
+results = client.v0.calculations.create_get_results(data["id"], timeout=False)
 print(results)
 ```
 
