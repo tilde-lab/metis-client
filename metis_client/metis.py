@@ -276,8 +276,12 @@ class MetisV0NamespaceSync(MetisNamespaceSyncBase):
         self.calculations = MetisV0CalculationsNamespaceSync(
             client_getter, default_timeout
         )
-        self.collections = MetisV0CollectionsNamespaceSync(client_getter, default_timeout)
-        self.datasources = MetisV0DatasourcesNamespaceSync(client_getter, default_timeout)
+        self.collections = MetisV0CollectionsNamespaceSync(
+            client_getter, default_timeout
+        )
+        self.datasources = MetisV0DatasourcesNamespaceSync(
+            client_getter, default_timeout
+        )
 
 
 class MetisAPI(MetisBase):
