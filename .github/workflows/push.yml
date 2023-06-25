@@ -39,7 +39,7 @@ jobs:
 
       - name: Create bump and changelog
         id: cz
-        if: github.repository != 'tilde-lab/metis-client'
+        if: github.repository == 'tilde-lab/metis-client'
         uses: commitizen-tools/commitizen-action@e41bf7f2029bc8175af362badd6fd0860a329b0f
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +48,7 @@ jobs:
           commit: true
 
       - name: Print new version
-        if: github.repository != 'tilde-lab/metis-client'
+        if: github.repository == 'tilde-lab/metis-client'
         run: echo "Bumped to version ${{ steps.cz.outputs.version }}"
 
       - name: Build
