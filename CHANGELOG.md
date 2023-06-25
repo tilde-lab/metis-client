@@ -1,3 +1,14 @@
+## v0.4.0 (2023-06-25)
+
+### Feat
+
+- **namespaces**: implements /calculations namespace, deprecate get_engines()
+- **MetisAPI**: timeouts
+
+### Refactor
+
+- **namespaces**: scope v0 namespaces into v0
+
 ## v0.3.0 (2023-05-19)
 
 ### Feat
