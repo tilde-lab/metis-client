@@ -15,7 +15,7 @@ from tests.helpers import random_word
 dt = datetime.fromordinal(1)
 TOKEN = random_word(10)
 PATH_C_ENGINES = "/calculations/supported"
-PATH_C_GET_ENGINES_RESPONSE = ["dummy", "other"]
+PATH_C_GET_ENGINES_RESPONSE = ["dummy", "other", "results"]
 
 
 async def get_engines_handler(_: web.Request) -> web.Response:
