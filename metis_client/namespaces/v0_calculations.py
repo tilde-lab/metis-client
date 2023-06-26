@@ -12,6 +12,7 @@ from ..dtos import (
     MetisDataSourceDTO,
     MetisRequestIdDTO,
 )
+from ..exc import MetisPayloadException
 from ..helpers import raise_on_metis_error
 from ..models import act_and_get_result_from_stream
 from .base import BaseNamespace
@@ -69,6 +70,9 @@ class MetisV0CalculationsNamespace(BaseNamespace):
         input: Optional[str] = None,  # pylint: disable=redefined-builtin
     ) -> Optional[MetisCalculationDTO]:
         "Create calculation and wait for result"
+        valid_engines = await self._root.calculations.supported()
+        if engine not in valid_engines:
+            raise MetisPayloadException(message="unsupported engine", status=400)
         evt = await act_and_get_result_from_stream(
             self._root.stream.subscribe,
             partial(self.create_event, data_id, engine, input),
