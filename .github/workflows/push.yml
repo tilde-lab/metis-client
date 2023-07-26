@@ -41,8 +41,8 @@ jobs:
 
       - name: Create bump and changelog
         id: cz
-        if: github.repository == 'metis-science/metis-client'
-        uses: commitizen-tools/commitizen-action@e41bf7f2029bc8175af362badd6fd0860a329b0f
+        if: github.repository == 'tilde-lab/metis-client'
+        uses: commitizen-tools/commitizen-action@4498afe6f2f1c5993fb29f22db7b597538c00aae
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           changelog_increment_filename: .CHANGELOG-CURRENT.md
@@ -63,7 +63,7 @@ jobs:
         run: git describe --tags --exact-match
 
       - name: Create Release Draft
-        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+        uses: softprops/action-gh-release@c9b46fe7aad9f02afd89b12450b780f52dacfb2d
         if: steps.no-bump.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
