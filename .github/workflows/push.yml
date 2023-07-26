@@ -17,6 +17,8 @@ jobs:
     needs: test
     permissions:
       contents: write
+    concurrency:
+      group: release
 
     steps:
       - name: Checkout repository
