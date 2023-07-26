@@ -49,9 +49,10 @@ jobs:
         run: isort -c --diff **/*.py
 
       - name: flake8
-        run: |
-          flake8 --exclude __init__.py
-          flake8 --extend-ignore=F401
+        run: flake8
 
       - name: pylint
         run: pylint metis_client tests examples
+
+      - name: pyupgrade
+        run: pyupgrade --py38-plus --keep-percent-format
