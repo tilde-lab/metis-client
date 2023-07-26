@@ -1,7 +1,9 @@
 """Low level http and SSE client"""
 
 import sys
-from asyncio import CancelledError, TimeoutError as AsyncioTimeoutError, sleep
+from asyncio import CancelledError
+from asyncio import TimeoutError as AsyncioTimeoutError
+from asyncio import sleep
 from concurrent.futures import TimeoutError as FuturesTimeoutError
 from datetime import timedelta
 from json import JSONDecodeError
