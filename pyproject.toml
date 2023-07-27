@@ -124,11 +124,11 @@ addopts = "--cov=metis_client --cov-report=term --no-cov-on-fail --cov-fail-unde
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.4.0"
 tag_format = "v$version"
 major_version_zero = true
 version_files = [
     "pyproject.toml:^version",
     "metis_client/const.py:^PROJECT_VERSION",
 ]
+version_provider = "pep621"
 update_changelog_on_bump = true

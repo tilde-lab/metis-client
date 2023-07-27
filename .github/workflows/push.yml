@@ -41,7 +41,7 @@ jobs:
 
       - name: Create bump and changelog
         id: cz
-        if: github.repository == 'tilde-lab/metis-client'
+        if: github.repository == 'metis-science/metis-client'
         uses: commitizen-tools/commitizen-action@4498afe6f2f1c5993fb29f22db7b597538c00aae
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
