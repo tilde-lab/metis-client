@@ -5,7 +5,7 @@ from __future__ import annotations
 from logging import Logger, getLogger
 from typing import Literal, Union
 
-PROJECT_VERSION = "0.4.0"
+PROJECT_VERSION = "0.5.0"
 PROJECT_NAME = "metis_client"
 
 # This is the default user agent,

@@ -1,3 +1,9 @@
+## v0.5.0 (2023-07-27)
+
+### Feat
+
+- **namespaces**: check that engine is supported
+
 ## v0.4.0 (2023-06-25)
 
 ### Feat
