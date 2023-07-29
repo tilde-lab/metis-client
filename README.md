@@ -3,7 +3,7 @@
 [![DOI](https://zenodo.org/badge/563802198.svg)](https://doi.org/10.5281/zenodo.7693569)
 [![PyPI](https://img.shields.io/pypi/v/metis_client.svg?style=flat)](https://pypi.org/project/metis-client)
 
-<p align="center"><img src="https://github.com/tilde-lab/metis.science/blob/master/src/assets/img/metis.svg" width="300" height="300" /></p>
+<p align="center"><img src="https://github.com/metis-science/metis-client/blob/master/metis-client.png" width="300" /></p>
 
 This library allows for programmatic interactions with the [Metis infrastructure](https://metis.science).
 
