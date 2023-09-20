@@ -126,11 +126,11 @@ def http_to_metis_error_map(status: int) -> Type[MetisError]:
 def metis_error_to_raise(dto: MetisErrorDTO):
     "Raise MetisErrorDTO"
     if isinstance(dto["error"], dict):
-        msg = str(dto["error"]["message"])
+        msg = str(dto["error"].get("message", "Unexpected server error"))
     else:
         msg = dto["error"]
-    err = http_to_metis_error_map(dto["status"])
-    raise err(status=dto["status"], message=msg)
+    err = http_to_metis_error_map(dto.get("status"))
+    raise err(status=dto.get("status"), message=msg)
 
 
 def raise_on_metis_error(func):

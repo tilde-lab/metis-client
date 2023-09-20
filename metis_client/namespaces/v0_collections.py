@@ -40,6 +40,7 @@ class MetisV0CollectionsNamespace(BaseNamespace):
             description=opts.get("description", ""),
             dataSources=opts.get("data_source_ids", []),
             users=opts.get("user_ids", []),
+            visibility=opts.get("visibility", "private"),
         )
         async with await self._client.request(
             method="PUT",
