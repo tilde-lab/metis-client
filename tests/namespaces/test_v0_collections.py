@@ -41,6 +41,7 @@ PATH_C_PUT_PAYLOAD: MetisCollectionCreateDTO = {
     "dataSources": [1, 2, 3],
     "users": [1, 2, 3],
     "description": random_word(10),
+    "visibility": "private",
 }
 PATH_C_PUT_RESPONSE_PAYLOAD: MetisCollectionDTO = {
     **PATH_C_PUT_PAYLOAD,
@@ -203,6 +204,7 @@ async def test_create_collection(
         "description": PATH_C_PUT_PAYLOAD["description"],
         "data_source_ids": PATH_C_PUT_PAYLOAD["dataSources"],
         "user_ids": PATH_C_PUT_PAYLOAD["users"],
+        "visibility": PATH_C_PUT_PAYLOAD["visibility"],
     }
     with raises:
         col = await client_async.v0.collections.create(**kwargs)

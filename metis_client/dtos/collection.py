@@ -42,6 +42,7 @@ class MetisCollectionCreateDTO(MetisCollectionCommonDTO):
     "Collection create DTO"
 
     description: NotRequired[str]
+    visibility: NotRequired[MetisCollectionVisibility]
 
 
 class MetisCollectionDTO(MetisCollectionCommonDTO, MetisTimestampsDTO):
