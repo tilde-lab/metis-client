@@ -19,7 +19,7 @@ from aiohttp.web_exceptions import (
 
 from .dtos import (
     MetisErrorDTO,
-    MetisErrorErrorDTO,
+    MetisErrorMessageDTO,
     MetisErrorEventDataDTO,
     MetisErrorEventDTO,
 )
@@ -92,8 +92,8 @@ dict_dt_from_dt_str = partial(
 )
 
 
-def is_metis_error_error_dto(something) -> TypeGuard[MetisErrorErrorDTO]:
-    "MetisErrorErrorDTO type guard"
+def is_metis_error_error_dto(something) -> TypeGuard[MetisErrorMessageDTO]:
+    "MetisErrorMessageDTO type guard"
     return (
         isinstance(something, dict)
         and "message" in something

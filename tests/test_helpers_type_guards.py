@@ -4,7 +4,7 @@ import pytest
 
 from metis_client.dtos import (
     MetisErrorDTO,
-    MetisErrorErrorDTO,
+    MetisErrorMessageDTO,
     MetisErrorEventDataDTO,
     MetisErrorEventDTO,
 )
@@ -15,19 +15,19 @@ from metis_client.helpers import (
     is_metis_errors_evt_dto,
 )
 
-GOOD_ERROR_ERROR: MetisErrorErrorDTO = {"message": "message"}
-BAD_ERROR_ERROR1 = "error error"
-BAD_ERROR_ERROR2 = {}
-BAD_ERROR_ERROR3 = {"message": None}
+GOOD_ERROR_MSG: MetisErrorMessageDTO = {"message": "message"}
+BAD_ERROR_MSG1 = "error error"
+BAD_ERROR_MSG2 = {}
+BAD_ERROR_MSG3 = {"message": None}
 
 
 @pytest.mark.parametrize(
     "x,expected",
     [
-        (GOOD_ERROR_ERROR, True),
-        (BAD_ERROR_ERROR1, False),
-        (BAD_ERROR_ERROR2, False),
-        (BAD_ERROR_ERROR3, False),
+        (GOOD_ERROR_MSG, True),
+        (BAD_ERROR_MSG1, False),
+        (BAD_ERROR_MSG2, False),
+        (BAD_ERROR_MSG3, False),
     ],
 )
 def test_is_metis_error_error_dto(x, expected):
@@ -36,11 +36,11 @@ def test_is_metis_error_error_dto(x, expected):
 
 
 GOOD_ERROR1: MetisErrorDTO = {"status": 1, "error": "error message"}
-GOOD_ERROR2: MetisErrorDTO = {"status": 1, "error": GOOD_ERROR_ERROR}
+GOOD_ERROR2: MetisErrorDTO = {"status": 1, "error": GOOD_ERROR_MSG}
 BAD_ERROR1 = "error"
 BAD_ERROR2 = {"status": 1}
-BAD_ERROR3 = {"error": GOOD_ERROR_ERROR}
-BAD_ERROR4 = {"status": 1, "error": BAD_ERROR_ERROR2}
+BAD_ERROR3 = {"error": GOOD_ERROR_MSG}
+BAD_ERROR4 = {"status": 1, "error": BAD_ERROR_MSG2}
 IS_METIS_ERROR_DTO_PAMAMS = [
     (GOOD_ERROR1, True),
     (GOOD_ERROR2, True),
