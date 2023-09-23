@@ -14,12 +14,13 @@ from .datasource import (
     MetisDataSourceContentOnlyDTO,
     MetisDataSourceDTO,
 )
-from .error import MetisErrorDTO
+from .error import MetisErrorDTO, MetisErrorErrorDTO
 from .event import (
     MetisCalculationsEventDTO,
     MetisCollectionsEventDTO,
     MetisDataSourcesEventDTO,
     MetisErrorEventDTO,
+    MetisErrorEventDataDTO,
     MetisEventDTO,
     MetisEventType,
     MetisPongEventDTO,
