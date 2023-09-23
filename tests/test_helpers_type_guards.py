@@ -3,8 +3,8 @@
 import pytest
 
 from metis_client.dtos import (
-    MetisErrorErrorDTO,
     MetisErrorDTO,
+    MetisErrorErrorDTO,
     MetisErrorEventDataDTO,
     MetisErrorEventDTO,
 )
@@ -14,7 +14,6 @@ from metis_client.helpers import (
     is_metis_error_event_data_dto,
     is_metis_errors_evt_dto,
 )
-
 
 GOOD_ERROR_ERROR: MetisErrorErrorDTO = {"message": "message"}
 BAD_ERROR_ERROR1 = "error error"

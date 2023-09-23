@@ -7,8 +7,8 @@ from typing import Optional
 from ..dtos import (
     MetisCollectionCreateDTO,
     MetisCollectionDTO,
-    MetisRequestIdDTO,
     MetisCollectionVisibility,
+    MetisRequestIdDTO,
 )
 from ..helpers import raise_on_metis_error
 from ..models import act_and_get_result_from_stream

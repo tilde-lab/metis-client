@@ -20,8 +20,8 @@ from aiohttp.web_exceptions import (
 from .dtos import (
     MetisErrorDTO,
     MetisErrorErrorDTO,
-    MetisErrorEventDTO,
     MetisErrorEventDataDTO,
+    MetisErrorEventDTO,
 )
 from .exc import (
     MetisAuthenticationException,
