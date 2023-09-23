@@ -1,4 +1,4 @@
-"""DTOs"""
+"""Data transfer objects"""
 
 from .auth import MetisAuthCredentialsRequestDTO
 from .base import MetisTimestampsDTO
@@ -14,11 +14,12 @@ from .datasource import (
     MetisDataSourceContentOnlyDTO,
     MetisDataSourceDTO,
 )
-from .error import MetisErrorDTO
+from .error import MetisErrorDTO, MetisErrorMessageDTO
 from .event import (
     MetisCalculationsEventDTO,
     MetisCollectionsEventDTO,
     MetisDataSourcesEventDTO,
+    MetisErrorEventDataDTO,
     MetisErrorEventDTO,
     MetisEventDTO,
     MetisEventType,

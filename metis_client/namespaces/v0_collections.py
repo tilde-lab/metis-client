@@ -4,7 +4,12 @@ from datetime import datetime
 from functools import partial
 from typing import Optional
 
-from ..dtos import MetisCollectionCreateDTO, MetisCollectionDTO, MetisRequestIdDTO
+from ..dtos import (
+    MetisCollectionCreateDTO,
+    MetisCollectionDTO,
+    MetisCollectionVisibility,
+    MetisRequestIdDTO,
+)
 from ..helpers import raise_on_metis_error
 from ..models import act_and_get_result_from_stream
 from .base import BaseNamespace
@@ -25,6 +30,7 @@ class MetisCollectionsCreateKwargs(TypedDict):
     description: NotRequired[str]
     data_source_ids: NotRequired[Sequence[int]]
     user_ids: NotRequired[Sequence[int]]
+    visibility: NotRequired[MetisCollectionVisibility]
 
 
 class MetisV0CollectionsNamespace(BaseNamespace):
@@ -40,6 +46,7 @@ class MetisV0CollectionsNamespace(BaseNamespace):
             description=opts.get("description", ""),
             dataSources=opts.get("data_source_ids", []),
             users=opts.get("user_ids", []),
+            visibility=opts.get("visibility", "private"),
         )
         async with await self._client.request(
             method="PUT",

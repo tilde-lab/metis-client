@@ -17,7 +17,12 @@ from aiohttp.web_exceptions import (
     HTTPUnauthorized,
 )
 
-from .dtos import MetisErrorDTO, MetisErrorEventDTO, MetisEventDTO
+from .dtos import (
+    MetisErrorDTO,
+    MetisErrorMessageDTO,
+    MetisErrorEventDataDTO,
+    MetisErrorEventDTO,
+)
 from .exc import (
     MetisAuthenticationException,
     MetisError,
@@ -87,9 +92,13 @@ dict_dt_from_dt_str = partial(
 )
 
 
-def is_metis_errors_evt_dto(evt: MetisEventDTO) -> TypeGuard[MetisErrorEventDTO]:
-    "MetisEventDTO type guard"
-    return bool(evt["type"] == "errors" and evt.get("data"))
+def is_metis_error_error_dto(something) -> TypeGuard[MetisErrorMessageDTO]:
+    "MetisErrorMessageDTO type guard"
+    return (
+        isinstance(something, dict)
+        and "message" in something
+        and isinstance(something["message"], str)
+    )
 
 
 def is_metis_error_dto(something) -> TypeGuard[MetisErrorDTO]:
@@ -100,10 +109,29 @@ def is_metis_error_dto(something) -> TypeGuard[MetisErrorDTO]:
         and "error" in something
         and (
             isinstance(something["error"], str)
-            or isinstance(something["error"], dict)
-            and "message" in something["error"]
-            and something["error"]["message"]
+            or is_metis_error_error_dto(something["error"])
         )
+    )
+
+
+def is_metis_error_event_data_dto(something) -> TypeGuard[MetisErrorEventDataDTO]:
+    "MetisErrorEventDataDTO type guard"
+    return (
+        isinstance(something, dict)
+        and "reqId" in something
+        and "data" in something
+        and isinstance(something["data"], list)
+        and all(is_metis_error_dto(x) for x in something["data"])
+    )
+
+
+def is_metis_errors_evt_dto(something) -> TypeGuard[MetisErrorEventDTO]:
+    "MetisEventDTO type guard"
+    return (
+        isinstance(something, dict)
+        and something.get("type") == "errors"
+        and "data" in something
+        and is_metis_error_event_data_dto(something["data"])
     )
 
 
@@ -125,11 +153,11 @@ def http_to_metis_error_map(status: int) -> Type[MetisError]:
 
 def metis_error_to_raise(dto: MetisErrorDTO):
     "Raise MetisErrorDTO"
-    if isinstance(dto["error"], dict):
-        msg = str(dto["error"]["message"])
-    else:
+    if isinstance(dto["error"], str):
         msg = dto["error"]
-    err = http_to_metis_error_map(dto["status"])
+    else:
+        msg = dto["error"]["message"]
+    err = http_to_metis_error_map(dto.get("status"))
     raise err(status=dto["status"], message=msg)
 
 

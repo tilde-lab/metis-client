@@ -9,12 +9,12 @@ else:  # pragma: no cover
     from typing import TypedDict
 
 
-class MetisErrorErrorDTO(TypedDict):
-    "Error's error payload DTO"
+class MetisErrorMessageDTO(TypedDict):
+    "Error's raw transport error payload DTO"
     message: str
 
 
 class MetisErrorDTO(TypedDict):
     "Error DTO"
     status: int
-    error: Union[MetisErrorErrorDTO, str]
+    error: Union[MetisErrorMessageDTO, str]
