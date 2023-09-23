@@ -1,3 +1,13 @@
+## v0.6.0 (2023-09-23)
+
+### Feat
+
+- **MetisAPI**: support collections visibility
+
+### Fix
+
+- **helpers**: runtime type checks
+
 ## v0.5.0 (2023-07-27)
 
 ### Feat
