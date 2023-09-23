@@ -5,7 +5,8 @@
 
 <p align="center"><img src="https://github.com/metis-science/metis-client/blob/master/metis-client.png" width="300" /></p>
 
-This library allows for programmatic interactions with the [Metis infrastructure](https://metis.science).
+This library allows for programmatic interactions with the [Metis infrastructure](https://github.com/basf/metis-bff).
+
 
 ## Installation
 
@@ -48,6 +49,12 @@ print(results)
 
 NB in development one can replace a `VERY_SECRET_TOKEN` string with the development user email, e.g.
 `admin@test.com` (refer to **users_emails** BFF table).
+
+
+## Contributing
+
+Please give a minute to the [contribution guide](https://github.com/metis-science/metis-client/blob/master/CONTRIBUTING.md). Note, that our [changelog](https://github.com/metis-science/metis-client/blob/master/CHANGELOG.md) is maintained fully automatically via [GitHub actions](https://github.com/metis-science/metis-client/tree/master/.github/workflows).
+
 
 ## License
 
