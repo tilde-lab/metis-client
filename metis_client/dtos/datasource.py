@@ -18,16 +18,16 @@ else:  # pragma: no cover
 
 
 class DataSourceType(int, Enum):
-    "Data source types"
+
     STRUCTURE = 1
     CALCULATION = 2
     PROPERTY = 3
     WORKFLOW = 4
     PATTERN = 5
+    USER_INPUT = 6
 
 
 class MetisDataSourceDTO(MetisTimestampsDTO):
-    "Data source DTO"
 
     id: int
     parents: Sequence[int]
@@ -43,5 +43,5 @@ class MetisDataSourceDTO(MetisTimestampsDTO):
 
 
 class MetisDataSourceContentOnlyDTO(TypedDict):
-    "Data source content only DTO"
+
     content: str

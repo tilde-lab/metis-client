@@ -27,6 +27,7 @@ else:  # pragma: no cover
 
 class MetisCollectionsCreateKwargs(TypedDict):
     "MetisV0CollectionsNamespace.create kwargs"
+    id: NotRequired[int]
     description: NotRequired[str]
     data_source_ids: NotRequired[Sequence[int]]
     user_ids: NotRequired[Sequence[int]]
@@ -39,8 +40,9 @@ class MetisV0CollectionsNamespace(BaseNamespace):
     async def create_event(
         self, type_id: int, title: str, **opts: Unpack[MetisCollectionsCreateKwargs]
     ) -> MetisRequestIdDTO:
-        "Create collection"
+        "Create or edit the collection"
         payload = MetisCollectionCreateDTO(
+            id=opts.get("id"),
             title=title,
             typeId=type_id,
             description=opts.get("description", ""),
@@ -59,7 +61,7 @@ class MetisV0CollectionsNamespace(BaseNamespace):
     async def create(
         self, type_id: int, title: str, **opts: Unpack[MetisCollectionsCreateKwargs]
     ) -> Optional[MetisCollectionDTO]:
-        "Create collection and wait for result"
+        "Create or edit the collection and wait for the result"
         evt = await act_and_get_result_from_stream(
             self._root.stream.subscribe,
             partial(self.create_event, type_id, title, **opts),

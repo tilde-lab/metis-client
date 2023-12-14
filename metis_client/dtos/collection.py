@@ -1,4 +1,5 @@
-"""Collections DTO's"""
+"""Collections DTOs"""
+
 import sys
 from typing import Literal, Union
 
@@ -16,7 +17,9 @@ else:  # pragma: no cover
 
 
 MetisCollectionVisibility = Union[
-    Literal["private"], Literal["shared"], Literal["community"]
+    Literal["private"],
+    Literal["shared"],
+    Literal["community"]
 ]
 
 
@@ -30,8 +33,9 @@ class MetisCollectionTypeDTO(MetisTimestampsDTO):
 
 
 class MetisCollectionCommonDTO(TypedDict):
-    "Common fields of collection's DTOs"
+    "Common fields of collection DTOs"
 
+    id: int
     title: str
     typeId: int
     dataSources: NotRequired[Sequence[int]]
