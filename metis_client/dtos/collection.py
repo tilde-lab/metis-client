@@ -45,6 +45,7 @@ class MetisCollectionCommonDTO(TypedDict):
 class MetisCollectionCreateDTO(MetisCollectionCommonDTO):
     "Collection create DTO"
 
+    id: NotRequired[int]
     description: NotRequired[str]
     visibility: NotRequired[MetisCollectionVisibility]
 

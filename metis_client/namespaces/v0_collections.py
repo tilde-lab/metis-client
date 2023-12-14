@@ -42,7 +42,6 @@ class MetisV0CollectionsNamespace(BaseNamespace):
     ) -> MetisRequestIdDTO:
         "Create or edit the collection"
         payload = MetisCollectionCreateDTO(
-            id=opts.get("id"),
             title=title,
             typeId=type_id,
             description=opts.get("description", ""),
@@ -50,6 +49,9 @@ class MetisV0CollectionsNamespace(BaseNamespace):
             users=opts.get("user_ids", []),
             visibility=opts.get("visibility", "private"),
         )
+
+        if opts.get("id"): payload["id"] = opts["id"] # FIXME???
+
         async with await self._client.request(
             method="PUT",
             url=self._base_url,
