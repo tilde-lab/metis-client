@@ -50,7 +50,8 @@ class MetisV0CollectionsNamespace(BaseNamespace):
             visibility=opts.get("visibility", "private"),
         )
 
-        if opts.get("id"): payload["id"] = opts["id"] # FIXME???
+        if "id" in opts:
+            payload["id"] = opts["id"]
 
         async with await self._client.request(
             method="PUT",

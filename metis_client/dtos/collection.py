@@ -35,7 +35,7 @@ class MetisCollectionTypeDTO(MetisTimestampsDTO):
 class MetisCollectionCommonDTO(TypedDict):
     "Common fields of collection DTOs"
 
-    id: int
+    id: NotRequired[int]
     title: str
     typeId: int
     dataSources: NotRequired[Sequence[int]]
@@ -45,7 +45,6 @@ class MetisCollectionCommonDTO(TypedDict):
 class MetisCollectionCreateDTO(MetisCollectionCommonDTO):
     "Collection create DTO"
 
-    id: NotRequired[int]
     description: NotRequired[str]
     visibility: NotRequired[MetisCollectionVisibility]
 
