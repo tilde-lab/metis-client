@@ -1,4 +1,5 @@
-"""Event DTOs"""
+"""SSE DTOs"""
+
 import sys
 from typing import Literal, Union
 
@@ -16,6 +17,7 @@ if sys.version_info < (3, 11):  # pragma: no cover
     from typing_extensions import TypedDict
 else:  # pragma: no cover
     from typing import TypedDict
+
 
 MetisEventType = Literal["calculations", "collections", "datasources", "errors", "pong"]
 

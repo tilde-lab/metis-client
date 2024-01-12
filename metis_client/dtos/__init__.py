@@ -1,4 +1,4 @@
-"""Data transfer objects"""
+"""All data transfer objects"""
 
 from .auth import MetisAuthCredentialsRequestDTO
 from .base import MetisTimestampsDTO

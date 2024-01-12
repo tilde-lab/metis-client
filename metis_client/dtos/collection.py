@@ -1,4 +1,5 @@
-"""Collections DTO's"""
+"""Collections DTOs"""
+
 import sys
 from typing import Literal, Union
 
@@ -30,8 +31,9 @@ class MetisCollectionTypeDTO(MetisTimestampsDTO):
 
 
 class MetisCollectionCommonDTO(TypedDict):
-    "Common fields of collection's DTOs"
+    "Common fields of collection DTOs"
 
+    id: NotRequired[int]
     title: str
     typeId: int
     dataSources: NotRequired[Sequence[int]]
