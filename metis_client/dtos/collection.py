@@ -17,9 +17,7 @@ else:  # pragma: no cover
 
 
 MetisCollectionVisibility = Union[
-    Literal["private"],
-    Literal["shared"],
-    Literal["community"]
+    Literal["private"], Literal["shared"], Literal["community"]
 ]
 
 
