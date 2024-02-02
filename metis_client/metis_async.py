@@ -1,6 +1,5 @@
 """Main Metis API async client"""
 
-import sys
 from types import TracebackType
 from typing import Literal, Optional, Type, Union
 
@@ -11,22 +10,13 @@ from aiohttp.typedefs import LooseHeaders, StrOrURL
 from yarl import URL
 
 from .client import MetisClient
+from .compat import List, NotRequired, TypedDict, Unpack
 from .const import DEFAULT_USER_AGENT
 from .models import BaseAuthenticator, MetisBase
 from .namespaces.calculations import MetisCalculationsNamespace
 from .namespaces.root import MetisRootNamespace
 from .namespaces.stream import MetisStreamNamespace
 from .namespaces.v0 import MetisV0Namespace
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import List
-else:  # pragma: no cover
-    List = list
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import NotRequired, TypedDict, Unpack
-else:  # pragma: no cover
-    from typing import NotRequired, TypedDict, Unpack
 
 
 class MetisAPIKwargs(TypedDict):

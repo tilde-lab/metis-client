@@ -1,7 +1,6 @@
 """Low level http and SSE client"""
 
 import json
-import sys
 from asyncio import CancelledError
 from asyncio import TimeoutError as AsyncioTimeoutError
 from asyncio import sleep
@@ -25,22 +24,11 @@ from aiohttp.web_exceptions import (
 from aiohttp_sse_client import client as sse_client
 from yarl import URL
 
+from .compat import Callable, Dict, Mapping, NotRequired, TypedDict, Unpack
 from .const import HttpMethods
 from .exc import MetisConnectionException, MetisException
 from .helpers import http_to_metis_error_map, metis_json_decoder, metis_json_encoder
 from .models import BaseAuthenticator, MetisBase, MetisNoAuth
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Callable, Dict, Mapping
-else:  # pragma: no cover
-    from collections.abc import Callable, Mapping
-
-    Dict = dict
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import NotRequired, TypedDict, Unpack
-else:  # pragma: no cover
-    from typing import NotRequired, TypedDict, Unpack
 
 
 class ClientRequestKwargs(TypedDict):

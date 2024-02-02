@@ -1,10 +1,10 @@
 """Collections endpoints namespace"""
 
-import sys
 from datetime import datetime
 from functools import partial
 from typing import Optional
 
+from ..compat import NotRequired, Sequence, TypedDict, Unpack
 from ..dtos import (
     MetisCollectionCreateDTO,
     MetisCollectionDTO,
@@ -14,16 +14,6 @@ from ..dtos import (
 from ..helpers import metis_json_decoder, raise_on_metis_error
 from ..models import act_and_get_result_from_stream
 from .base import BaseNamespace
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import NotRequired, TypedDict, Unpack
-else:  # pragma: no cover
-    from typing import NotRequired, TypedDict, Unpack
 
 
 class MetisCollectionsCreateKwargs(TypedDict):

@@ -2,21 +2,11 @@
 
 # pylint: disable=too-many-ancestors
 
-import sys
 from enum import Enum
 
+from ..compat import Sequence, TypedDict
 from .base import MetisTimestampsDTO
 from .collection import MetisCollectionDTO
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import TypedDict
-else:  # pragma: no cover
-    from typing import TypedDict
 
 
 class DataSourceType(int, Enum):

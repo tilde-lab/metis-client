@@ -1,19 +1,14 @@
 """Stream endpoint namespace"""
 
 import asyncio
-import sys
 from typing import Optional
 
 from aiohttp_sse_client.client import MessageEvent
 
+from ..compat import Callable
 from ..dtos import MetisEventDTO
 from ..models import MetisHub, MetisMessageEvent, MetisSubscription
 from .base import BaseNamespace
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Callable
-else:  # pragma: no cover
-    from collections.abc import Callable
 
 
 class MetisStreamNamespace(BaseNamespace):

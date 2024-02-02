@@ -2,21 +2,10 @@
 
 # pylint: disable=too-many-ancestors
 
-import sys
 from typing import Literal, Union
 
+from ..compat import NotRequired, Sequence, TypedDict
 from .base import MetisTimestampsDTO
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import NotRequired, TypedDict
-else:  # pragma: no cover
-    from typing import NotRequired, TypedDict
-
 
 MetisCollectionVisibility = Union[
     Literal["private"], Literal["shared"], Literal["community"]

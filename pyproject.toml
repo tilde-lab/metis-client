@@ -116,6 +116,9 @@ output-format = "colorized"
 reports = "no"
 score = "no"
 
+[tool.pylint.similarities]
+min-similarity-lines = 8
+
 [tool.pylint-per-file-ignores]
 "/tests/" = "redefined-outer-name"
 

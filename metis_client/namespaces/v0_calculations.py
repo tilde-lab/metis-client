@@ -1,12 +1,12 @@
 """Calculations endpoints namespace"""
 
-import sys
 from datetime import datetime
 from functools import partial
 from inspect import iscoroutinefunction
 from typing import Awaitable, Callable, Optional, Union, cast
 from warnings import warn
 
+from ..compat import Sequence
 from ..dtos import (
     DataSourceType,
     MetisCalculationDTO,
@@ -17,12 +17,6 @@ from ..exc import MetisPayloadException
 from ..helpers import metis_json_decoder, raise_on_metis_error
 from ..models import act_and_get_result_from_stream
 from .base import BaseNamespace
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
 
 DATA_SOURCE_CALC_RESULT_TYPES = [DataSourceType.PROPERTY, DataSourceType.PATTERN]
 

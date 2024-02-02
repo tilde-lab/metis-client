@@ -1,5 +1,7 @@
 "Test MetisV0CalculationsNamespace"
 
+# pylint: disable=duplicate-code
+
 import asyncio
 import json
 from contextlib import nullcontext as does_not_raise

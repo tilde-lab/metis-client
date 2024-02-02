@@ -1,18 +1,14 @@
 "Stream subscription"
-import sys
+
 from asyncio import CancelledError, Queue, QueueFull
 from contextlib import asynccontextmanager
 from types import TracebackType
 from typing import TYPE_CHECKING, Optional, Type
 
+from ..compat import Awaitable, Callable
 from ..dtos import MetisEventDTO, MetisRequestIdDTO
 from ..helpers import raise_on_metis_error_in_event
 from .base import MetisBase
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Awaitable, Callable
-else:  # pragma: no cover
-    from collections.abc import Awaitable, Callable
 
 if TYPE_CHECKING:  # pragma: no cover
     from .hub import MetisHub

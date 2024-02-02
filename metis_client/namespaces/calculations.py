@@ -1,14 +1,8 @@
 """Calculations endpoints namespace"""
 
-import sys
-
+from ..compat import Sequence
 from ..helpers import metis_json_decoder, raise_on_metis_error
 from .base import BaseNamespace
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
 
 
 class MetisCalculationsNamespace(BaseNamespace):

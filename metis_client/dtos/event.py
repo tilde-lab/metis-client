@@ -1,23 +1,12 @@
 """SSE DTOs"""
 
-import sys
 from typing import Literal, Union
 
+from ..compat import Sequence, TypedDict
 from .calculation import MetisCalculationDTO
 from .collection import MetisCollectionDTO, MetisCollectionTypeDTO
 from .datasource import MetisDataSourceDTO
 from .error import MetisErrorDTO
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import TypedDict
-else:  # pragma: no cover
-    from typing import TypedDict
-
 
 MetisEventType = Literal["calculations", "collections", "datasources", "errors", "pong"]
 
