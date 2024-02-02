@@ -19,11 +19,11 @@ class MetisUserDTO(MetisTimestampsDTO):
     "User DTO"
 
     id: int
-    firstName: NotRequired[str]
-    lastName: NotRequired[str]
+    first_name: NotRequired[str]
+    last_name: NotRequired[str]
     email: NotRequired[str]
-    emailVerified: NotRequired[bool]
-    roleLabel: NotRequired[str]
-    roleSlug: NotRequired[str]
+    email_verified: NotRequired[bool]
+    role_label: NotRequired[str]
+    role_slug: NotRequired[str]
     permissions: NotRequired[Dict[str, str]]
     provider: NotRequired[str]

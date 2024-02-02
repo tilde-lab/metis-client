@@ -10,4 +10,4 @@ else:  # pragma: no cover
 
 class MetisRequestIdDTO(TypedDict):
     "Response with request id dictionary"
-    reqId: str
+    req_id: str

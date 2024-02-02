@@ -35,8 +35,8 @@ class MetisCollectionCommonDTO(TypedDict):
 
     id: NotRequired[int]
     title: str
-    typeId: int
-    dataSources: NotRequired[Sequence[int]]
+    type_id: int
+    data_sources: NotRequired[Sequence[int]]
     users: NotRequired[Sequence[int]]
 
 
@@ -54,9 +54,9 @@ class MetisCollectionDTO(MetisCollectionCommonDTO, MetisTimestampsDTO):
     description: str
     visibility: MetisCollectionVisibility
 
-    userId: int
-    userFirstName: NotRequired[str]
-    userLastName: NotRequired[str]
-    typeSlug: NotRequired[str]
-    typeLabel: NotRequired[str]
-    typeFlavor: NotRequired[str]
+    user_id: int
+    user_first_name: NotRequired[str]
+    user_last_name: NotRequired[str]
+    type_slug: NotRequired[str]
+    type_label: NotRequired[str]
+    type_flavor: NotRequired[str]

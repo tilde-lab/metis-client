@@ -11,5 +11,5 @@ else:  # pragma: no cover
 
 class MetisTimestampsDTO(TypedDict):
     "Response with timestamps"
-    createdAt: NotRequired[datetime]
-    updatedAt: NotRequired[datetime]
+    created_at: NotRequired[datetime]
+    updated_at: NotRequired[datetime]

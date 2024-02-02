@@ -10,7 +10,12 @@ from typing import List
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
-from aiohttp.web_exceptions import HTTPNotFound, HTTPOk
+from aiohttp.web_exceptions import (
+    HTTPBadRequest,
+    HTTPNotFound,
+    HTTPOk,
+    HTTPPaymentRequired,
+)
 from yarl import URL
 
 from metis_client import MetisAPI, MetisAPIAsync, MetisTokenAuth
@@ -40,16 +45,22 @@ PATH_C_ID = "/v0/calculations/{id}"
 PATH_C_POST_RESPONSE_PAYLOAD: MetisCalculationDTO = {
     "id": CALC_ID,
     "name": random_word(10),
-    "userId": 1,
+    "user_id": 1,
     "progress": 1,
     "result": [],
-    "createdAt": dt,
-    "updatedAt": dt,
+    "created_at": dt,
+    "updated_at": dt,
     "parent": DS_ID,
 }
-PATH_C_POST_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {"status": 400, "error": "oops"}
+PATH_C_POST_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {
+    "status": HTTPBadRequest.status_code,
+    "error": "oops",
+}
 PATH_C_GET_RESPONSE_PAYLOAD = deepcopy(PATH_C_POST_RESPONSE_PAYLOAD)
-PATH_C_GET_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {"status": 402, "error": "oops"}
+PATH_C_GET_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {
+    "status": HTTPPaymentRequired.status_code,
+    "error": "oops",
+}
 PATH_C_DELETE_RESPONSE_ERROR_PAYLOAD = deepcopy(PATH_C_POST_RESPONSE_ERROR_PAYLOAD)
 PATH_C_DELETE_RESPONSE_ERROR404_PAYLOAD = {
     "status": HTTPNotFound.status_code,
@@ -61,7 +72,7 @@ event_stream: List[MetisMessageEvent] = []
 
 def make_calculations_event(req_id: str, datas) -> MetisMessageEvent:
     "Create calculations event with content"
-    evt_data_dto = {"reqId": req_id, "data": datas, "total": 1, "types": []}
+    evt_data_dto = {"req_id": req_id, "data": datas, "total": 1, "types": []}
     return MetisMessageEvent(
         "calculations", "calculations", json.dumps(evt_data_dto), "", ""
     )
@@ -69,7 +80,7 @@ def make_calculations_event(req_id: str, datas) -> MetisMessageEvent:
 
 def make_error_event(req_id: str, datas) -> MetisMessageEvent:
     "Create errors event with content"
-    evt_data_dto = {"reqId": req_id, "data": datas}
+    evt_data_dto = {"req_id": req_id, "data": datas}
     return MetisMessageEvent("errors", "errors", json.dumps(evt_data_dto), "", "")
 
 
@@ -93,46 +104,46 @@ async def ping_handler(_) -> web.Response:
 
 async def calculation_create_handler(request: web.Request) -> web.Response:
     "Request handler"
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     payload = await request.json()
     if payload.get("engine") == "dummy":
         cal_dto = {
             **PATH_C_POST_RESPONSE_PAYLOAD,
-            "createdAt": dt.isoformat(),
-            "updatedAt": dt.isoformat(),
+            "created_at": dt.isoformat(),
+            "updated_at": dt.isoformat(),
         }
-        evt = make_calculations_event(body["reqId"], [cal_dto])
+        evt = make_calculations_event(body["req_id"], [cal_dto])
         event_stream.append(evt)
     elif payload.get("engine") == "results":
         cal_dto = {
             **PATH_C_POST_RESPONSE_PAYLOAD,
-            "createdAt": dt.isoformat(),
-            "updatedAt": dt.isoformat(),
+            "created_at": dt.isoformat(),
+            "updated_at": dt.isoformat(),
             "progress": 25,
             "parent": payload["dataId"],
         }
-        event_stream.append(make_calculations_event(body["reqId"], [cal_dto]))
+        event_stream.append(make_calculations_event(body["req_id"], [cal_dto]))
         event_stream.append(
-            make_calculations_event(body["reqId"], [{**cal_dto, "progress": 50}])
+            make_calculations_event(body["req_id"], [{**cal_dto, "progress": 50}])
         )
-        event_stream.append(make_calculations_event(body["reqId"], []))
+        event_stream.append(make_calculations_event(body["req_id"], []))
         event_stream.append(
-            make_calculations_event(body["reqId"], [{**cal_dto, "progress": 75}])
+            make_calculations_event(body["req_id"], [{**cal_dto, "progress": 75}])
         )
         ds_dto = {
             **PATH_DS_POST_RESPONSE_PAYLOAD,
-            "createdAt": dt.isoformat(),
-            "updatedAt": dt.isoformat(),
+            "created_at": dt.isoformat(),
+            "updated_at": dt.isoformat(),
             "parents": [payload["dataId"]],
             "type": DataSourceType.PROPERTY,
         }
         event_stream.append(
-            make_calculations_event(body["reqId"], [{**ds_dto, "progress": 100}])
+            make_calculations_event(body["req_id"], [{**ds_dto, "progress": 100}])
         )
-        event_stream.append(make_datasources_event(body["reqId"], [ds_dto]))
+        event_stream.append(make_datasources_event(body["req_id"], [ds_dto]))
     else:
-        evt = make_error_event(body["reqId"], [PATH_C_POST_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_C_POST_RESPONSE_ERROR_PAYLOAD])
         event_stream.append(evt)
 
     return web.json_response(body, status=HTTPOk.status_code)
@@ -141,17 +152,17 @@ async def calculation_create_handler(request: web.Request) -> web.Response:
 async def list_calculations_handler(request: web.Request) -> web.Response:
     "Request handler"
     auth_header = request.headers.get("Authorization", "")
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     if auth_header != f"Bearer {str(True)}":
         ds_dto = {
             **PATH_C_GET_RESPONSE_PAYLOAD,
-            "createdAt": dt.isoformat(),
-            "updatedAt": dt.isoformat(),
+            "created_at": dt.isoformat(),
+            "updated_at": dt.isoformat(),
         }
-        evt = make_calculations_event(body["reqId"], [ds_dto])
+        evt = make_calculations_event(body["req_id"], [ds_dto])
     else:
-        evt = make_error_event(body["reqId"], [PATH_C_GET_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_C_GET_RESPONSE_ERROR_PAYLOAD])
 
     event_stream.append(evt)
 
@@ -164,12 +175,12 @@ async def cancel_calculations_handler(request: web.Request) -> web.Response:
     if request.match_info.get("id") not in ["1", "2"]:
         return web.Response(status=HTTPNotFound.status_code)
 
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     if request.match_info.get("id") == "2":
-        evt = make_error_event(body["reqId"], [PATH_C_DELETE_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_C_DELETE_RESPONSE_ERROR_PAYLOAD])
     else:
-        evt = make_calculations_event(body["reqId"], [])
+        evt = make_calculations_event(body["req_id"], [])
 
     event_stream.append(evt)
 

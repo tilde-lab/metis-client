@@ -1,12 +1,13 @@
 """Small helpers"""
 
+import json
 import re
 import sys
 from contextlib import suppress
 from copy import deepcopy
 from datetime import datetime
-from functools import partial, wraps
-from typing import Any, Optional, Type, TypeVar, cast
+from functools import wraps
+from typing import Any, Optional, Type, TypeVar
 
 from aiohttp.web_exceptions import (
     HTTPBadRequest,
@@ -16,12 +17,13 @@ from aiohttp.web_exceptions import (
     HTTPPaymentRequired,
     HTTPUnauthorized,
 )
+from camel_converter import dict_to_camel, dict_to_snake
 
 from .dtos import (
     MetisErrorDTO,
-    MetisErrorMessageDTO,
     MetisErrorEventDataDTO,
     MetisErrorEventDTO,
+    MetisErrorMessageDTO,
 )
 from .exc import (
     MetisAuthenticationException,
@@ -30,13 +32,6 @@ from .exc import (
     MetisPayloadException,
     MetisQuotaException,
 )
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Mapping, Sequence, Tuple
-else:  # pragma: no cover
-    from collections.abc import Mapping, Sequence
-
-    Tuple = tuple
 
 if sys.version_info < (3, 10):  # pragma: no cover
     from typing_extensions import TypeGuard
@@ -59,7 +54,7 @@ def parse_rfc3339(dt_str: Any) -> Optional[datetime]:
         dt_str = LAST_Z_REGEX.sub("+00:00", dt_str)
 
     with suppress(ValueError):
-        datetime.fromisoformat(dt_str)
+        return datetime.fromisoformat(dt_str)
 
     for fmt in (
         "%Y-%m-%dT%H:%M:%S.%f%z",
@@ -73,23 +68,67 @@ def parse_rfc3339(dt_str: Any) -> Optional[datetime]:
             return datetime.strptime(dt_str, fmt)
 
 
-_DT = TypeVar("_DT", bound=Mapping)
+_DT = TypeVar("_DT", bound=dict)
 
 
-def convert_dict_items_to_datetime(keys: Sequence[str], data: _DT) -> _DT:
-    "Convert mapping's items to datetime"
+def convert_dict_values_to_dt(data: _DT) -> _DT:
+    "Converts dictionary values to datetime"
 
-    def apply_parse(x: Tuple):
-        if x[0] not in keys or not isinstance(x[1], str):
-            return x
-        return (x[0], parse_rfc3339(x[1]))
+    converted = deepcopy(data)
+    for key, val in data.items():
+        if isinstance(val, str):
+            converted[key] = parse_rfc3339(val) or val
+        elif isinstance(val, dict):
+            converted[key] = convert_dict_values_to_dt(val)
+        elif isinstance(val, list):
+            converted[key] = [
+                convert_dict_values_to_dt(x) if isinstance(x, dict) else x for x in val
+            ]
+        elif isinstance(val, tuple):
+            converted[key] = tuple(
+                convert_dict_values_to_dt(x) if isinstance(x, dict) else x for x in val
+            )
 
-    return cast(_DT, dict(map(apply_parse, deepcopy(data).items())))
+    return converted
 
 
-dict_dt_from_dt_str = partial(
-    convert_dict_items_to_datetime, ["createdAt", "updatedAt"]
-)
+def convert_dict_values_from_dt(data: _DT) -> _DT:
+    "Converts dictionary values from datetime to string"
+
+    converted = deepcopy(data)
+    for key, val in data.items():
+        if isinstance(val, datetime):
+            converted[key] = val.isoformat()
+        elif isinstance(val, dict):
+            converted[key] = convert_dict_values_from_dt(val)
+        elif isinstance(val, list):
+            converted[key] = [
+                convert_dict_values_from_dt(x) if isinstance(x, dict) else x
+                for x in val
+            ]
+        elif isinstance(val, tuple):
+            converted[key] = tuple(
+                convert_dict_values_from_dt(x) if isinstance(x, dict) else x
+                for x in val
+            )
+
+    return converted
+
+
+def metis_json_decoder(obj, *args, **kwargs):
+    "Json decoder but with conversion to snake case and datetime"
+    payload = json.loads(obj, *args, **kwargs)
+    if isinstance(payload, dict):
+        return convert_dict_values_to_dt(dict_to_snake(payload))
+    return payload
+
+
+def metis_json_encoder(obj, *args, **kwargs):
+    "Json encoder but with conversion to camel case"
+    payload = obj
+    if isinstance(obj, dict):
+        payload = convert_dict_values_from_dt(dict_to_camel(obj))
+    return json.dumps(payload, *args, **kwargs)
 
 
 def is_metis_error_error_dto(something) -> TypeGuard[MetisErrorMessageDTO]:
@@ -118,7 +157,7 @@ def is_metis_error_event_data_dto(something) -> TypeGuard[MetisErrorEventDataDTO
     "MetisErrorEventDataDTO type guard"
     return (
         isinstance(something, dict)
-        and "reqId" in something
+        and "req_id" in something
         and "data" in something
         and isinstance(something["data"], list)
         and all(is_metis_error_dto(x) for x in something["data"])

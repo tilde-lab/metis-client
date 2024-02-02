@@ -11,7 +11,12 @@ from typing import List
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
-from aiohttp.web_exceptions import HTTPNotFound, HTTPOk
+from aiohttp.web_exceptions import (
+    HTTPBadRequest,
+    HTTPNotFound,
+    HTTPOk,
+    HTTPPaymentRequired,
+)
 from yarl import URL
 
 from metis_client import MetisAPI, MetisAPIAsync, MetisTokenAuth
@@ -36,21 +41,28 @@ PATH_PING = "/v0"
 PATH_C = "/v0/collections"
 PATH_C_ID = "/v0/collections/{id}"
 PATH_C_PUT_PAYLOAD: MetisCollectionCreateDTO = {
+    "id": 123,
     "title": random_word(10),
-    "typeId": 1,
-    "dataSources": [1, 2, 3],
+    "type_id": 1,
+    "data_sources": [1, 2, 3],
     "users": [1, 2, 3],
     "description": random_word(10),
     "visibility": "private",
 }
 PATH_C_PUT_RESPONSE_PAYLOAD: MetisCollectionDTO = {
     **PATH_C_PUT_PAYLOAD,
-    "createdAt": dt,
-    "updatedAt": dt,
+    "created_at": dt,
+    "updated_at": dt,
 }
-PATH_C_PUT_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {"status": 400, "error": "oops"}
+PATH_C_PUT_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {
+    "status": HTTPBadRequest.status_code,
+    "error": "oops",
+}
 PATH_C_GET_RESPONSE_PAYLOAD = deepcopy(PATH_C_PUT_RESPONSE_PAYLOAD)
-PATH_C_GET_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {"status": 402, "error": "oops"}
+PATH_C_GET_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {
+    "status": HTTPPaymentRequired.status_code,
+    "error": "oops",
+}
 PATH_C_DELETE_RESPONSE_ERROR_PAYLOAD = deepcopy(PATH_C_PUT_RESPONSE_ERROR_PAYLOAD)
 PATH_C_DELETE_RESPONSE_ERROR404_PAYLOAD = {
     "status": HTTPNotFound.status_code,
@@ -62,7 +74,7 @@ event_stream: List[MetisMessageEvent] = []
 
 def make_collections_event(req_id: str, datas) -> MetisMessageEvent:
     "Create collections event with content"
-    evt_data_dto = {"reqId": req_id, "data": datas, "total": 1, "types": []}
+    evt_data_dto = {"req_id": req_id, "data": datas, "total": 1, "types": []}
     return MetisMessageEvent(
         "collections", "collections", json.dumps(evt_data_dto), "", ""
     )
@@ -70,7 +82,7 @@ def make_collections_event(req_id: str, datas) -> MetisMessageEvent:
 
 def make_error_event(req_id: str, datas) -> MetisMessageEvent:
     "Create errors event with content"
-    evt_data_dto = {"reqId": req_id, "data": datas}
+    evt_data_dto = {"req_id": req_id, "data": datas}
     return MetisMessageEvent("errors", "errors", json.dumps(evt_data_dto), "", "")
 
 
@@ -94,18 +106,18 @@ async def ping_handler(_) -> web.Response:
 
 async def collection_create_handler(request: web.Request) -> web.Response:
     "Request handler"
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     payload = await request.json()
     if payload.get("typeId") == 1:
         collection_dto = {
             **payload,
-            "createdAt": dt.isoformat(),
-            "updatedAt": dt.isoformat(),
+            "created_at": dt.isoformat(),
+            "updated_at": dt.isoformat(),
         }
-        evt = make_collections_event(body["reqId"], [collection_dto])
+        evt = make_collections_event(body["req_id"], [collection_dto])
     else:
-        evt = make_error_event(body["reqId"], [PATH_C_PUT_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_C_PUT_RESPONSE_ERROR_PAYLOAD])
 
     event_stream.append(evt)
 
@@ -115,17 +127,17 @@ async def collection_create_handler(request: web.Request) -> web.Response:
 async def list_collections_handler(request: web.Request) -> web.Response:
     "Request handler"
     auth_header = request.headers.get("Authorization", "")
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     if auth_header != f"Bearer {str(True)}":
         collection_dto = {
             **PATH_C_GET_RESPONSE_PAYLOAD,
-            "createdAt": dt.isoformat(),
-            "updatedAt": dt.isoformat(),
+            "created_at": dt.isoformat(),
+            "updated_at": dt.isoformat(),
         }
-        evt = make_collections_event(body["reqId"], [collection_dto])
+        evt = make_collections_event(body["req_id"], [collection_dto])
     else:
-        evt = make_error_event(body["reqId"], [PATH_C_GET_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_C_GET_RESPONSE_ERROR_PAYLOAD])
 
     event_stream.append(evt)
 
@@ -138,12 +150,12 @@ async def delete_collection_handler(request: web.Request) -> web.Response:
     if request.match_info.get("id") not in ["1", "2"]:
         return web.Response(status=HTTPNotFound.status_code)
 
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     if request.match_info.get("id") == "2":
-        evt = make_error_event(body["reqId"], [PATH_C_DELETE_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_C_DELETE_RESPONSE_ERROR_PAYLOAD])
     else:
-        evt = make_collections_event(body["reqId"], [])
+        evt = make_collections_event(body["req_id"], [])
 
     event_stream.append(evt)
 
@@ -199,10 +211,11 @@ async def test_create_collection(
 ):
     "Test create()"
     kwargs = {
+        "id": 123,
         "type_id": type_id,
         "title": PATH_C_PUT_PAYLOAD["title"],
         "description": PATH_C_PUT_PAYLOAD["description"],
-        "data_source_ids": PATH_C_PUT_PAYLOAD["dataSources"],
+        "data_source_ids": PATH_C_PUT_PAYLOAD["data_sources"],
         "user_ids": PATH_C_PUT_PAYLOAD["users"],
         "visibility": PATH_C_PUT_PAYLOAD["visibility"],
     }

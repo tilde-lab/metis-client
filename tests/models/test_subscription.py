@@ -7,7 +7,7 @@ from metis_client.models import MetisHub, MetisSubscription
 
 TEST_EVENT: MetisErrorEventDTO = {
     "type": "errors",
-    "data": {"reqId": "1", "data": [{"status": 1, "error": "oops"}]},
+    "data": {"req_id": "1", "data": [{"status": 1, "error": "oops"}]},
 }
 
 

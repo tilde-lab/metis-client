@@ -21,16 +21,16 @@ TOKEN = random_word(10)
 PATH_AUTH = "/v0/auth"
 PATH_AUTH_GET_PAYLOAD: MetisUserDTO = {
     "id": 1,
-    "firstName": random_word(10),
-    "lastName": random_word(10),
+    "first_name": random_word(10),
+    "last_name": random_word(10),
     "email": random_word(10),
-    "emailVerified": True,
-    "roleLabel": random_word(10),
-    "roleSlug": random_word(10),
+    "email_verified": True,
+    "role_label": random_word(10),
+    "role_slug": random_word(10),
     "permissions": {},
     "provider": "",
-    "createdAt": dt,
-    "updatedAt": dt,
+    "created_at": dt,
+    "updated_at": dt,
 }
 PATH_AUTH_POST_PAYLOAD: MetisAuthCredentialsRequestDTO = {
     "email": random_word(10),
@@ -42,8 +42,8 @@ async def auth_whoami_handler(_: web.Request) -> web.Response:
     "Request handler"
     payload = {
         **deepcopy(PATH_AUTH_GET_PAYLOAD),
-        "createdAt": PATH_AUTH_GET_PAYLOAD.get("createdAt", dt).isoformat(),
-        "updatedAt": PATH_AUTH_GET_PAYLOAD.get("updatedAt", dt).isoformat(),
+        "created_at": PATH_AUTH_GET_PAYLOAD.get("created_at", dt).isoformat(),
+        "updated_at": PATH_AUTH_GET_PAYLOAD.get("updated_at", dt).isoformat(),
     }
     return web.json_response(payload, status=HTTPOk.status_code)
 

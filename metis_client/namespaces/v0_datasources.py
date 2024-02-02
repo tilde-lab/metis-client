@@ -6,7 +6,7 @@ from functools import partial
 from typing import Optional
 
 from ..dtos import MetisDataSourceContentOnlyDTO, MetisDataSourceDTO, MetisRequestIdDTO
-from ..helpers import raise_on_metis_error
+from ..helpers import metis_json_decoder, raise_on_metis_error
 from ..models import act_and_get_result_from_stream
 from .base import BaseNamespace
 
@@ -29,7 +29,7 @@ class MetisV0DatasourcesNamespace(BaseNamespace):
             json={"content": content, "fmt": fmt, "name": name},
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     async def create(
         self, content: str, fmt: Optional[str] = None, name: Optional[str] = None
@@ -41,7 +41,7 @@ class MetisV0DatasourcesNamespace(BaseNamespace):
         if evt["type"] == "datasources":
             data = sorted(
                 evt.get("data", {}).get("data", []),
-                key=lambda x: x.get("createdAt", datetime.fromordinal(1)),
+                key=lambda x: x.get("created_at", datetime.fromordinal(1)),
             )
             return data[-1] if data else None
 
@@ -52,7 +52,7 @@ class MetisV0DatasourcesNamespace(BaseNamespace):
             url=self._base_url / str(data_id),
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     async def delete(self, data_id: int) -> None:
         "Delete data source by id and wait for the result"
@@ -67,7 +67,7 @@ class MetisV0DatasourcesNamespace(BaseNamespace):
             url=self._base_url,
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     async def list(self) -> Sequence[MetisDataSourceDTO]:
         "List data sources and wait for the result"
@@ -103,4 +103,4 @@ class MetisV0DatasourcesNamespace(BaseNamespace):
             url=self._base_url / str(data_id),
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)

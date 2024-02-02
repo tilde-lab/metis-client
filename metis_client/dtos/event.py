@@ -24,7 +24,7 @@ MetisEventType = Literal["calculations", "collections", "datasources", "errors",
 
 class MetisErrorEventDataDTO(TypedDict):
     "Errors event data DTO"
-    reqId: str
+    req_id: str
     data: Sequence[MetisErrorDTO]
 
 
@@ -42,7 +42,7 @@ class MetisPongEventDTO(TypedDict):
 
 class MetisDataSourcesEventDataDTO(TypedDict):
     "Data sources event data DTO"
-    reqId: str
+    req_id: str
     data: Sequence[MetisDataSourceDTO]
     total: int
     types: Sequence[MetisCollectionTypeDTO]
@@ -56,7 +56,7 @@ class MetisDataSourcesEventDTO(TypedDict):
 
 class MetisCalculationsEventDataDTO(TypedDict):
     "Calculations event data DTO"
-    reqId: str
+    req_id: str
     data: Sequence[MetisCalculationDTO]
     total: int
     types: Sequence[MetisCollectionTypeDTO]
@@ -70,7 +70,7 @@ class MetisCalculationsEventDTO(TypedDict):
 
 class MetisCollectionsEventDataDTO(TypedDict):
     "Collections event data DTO"
-    reqId: str
+    req_id: str
     data: Sequence[MetisCollectionDTO]
     total: int
     types: Sequence[MetisCollectionTypeDTO]

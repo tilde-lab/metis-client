@@ -30,7 +30,7 @@ async def act_and_get_result_from_stream(
         resp = await func()
         async for msg in sub:
             data = msg.get("data")
-            if isinstance(data, dict) and data.get("reqId") == resp.get("reqId"):
+            if isinstance(data, dict) and data.get("req_id") == resp.get("req_id"):
                 return msg
     raise CancelledError  # pragma: no cover
 

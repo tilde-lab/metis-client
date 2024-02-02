@@ -1,7 +1,7 @@
 """Authentication endpoints namespace"""
 
 from ..dtos import MetisAuthCredentialsRequestDTO, MetisUserDTO
-from ..helpers import dict_dt_from_dt_str, raise_on_metis_error
+from ..helpers import metis_json_decoder, raise_on_metis_error
 from .base import BaseNamespace
 
 
@@ -23,7 +23,6 @@ class MetisV0AuthNamespace(BaseNamespace):
     async def whoami(self) -> MetisUserDTO:
         "Get self info"
         async with self._client.request(
-            url=self._base_url,
-            auth_required=self._auth_required,
+            url=self._base_url, auth_required=self._auth_required
         ) as resp:
-            return dict_dt_from_dt_str(await resp.json())
+            return await resp.json(loads=metis_json_decoder)

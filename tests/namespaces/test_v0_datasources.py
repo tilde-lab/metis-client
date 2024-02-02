@@ -11,7 +11,12 @@ from typing import List
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
-from aiohttp.web_exceptions import HTTPNotFound, HTTPOk
+from aiohttp.web_exceptions import (
+    HTTPBadRequest,
+    HTTPNotFound,
+    HTTPOk,
+    HTTPPaymentRequired,
+)
 from freezegun import freeze_time
 from yarl import URL
 
@@ -41,23 +46,26 @@ PATH_DS = "/v0/datasources"
 PATH_DS_ID = "/v0/datasources/{id}"
 PATH_DS_POST_RESPONSE_PAYLOAD: MetisDataSourceDTO = {
     "id": DS_ID,
-    "userId": 1,
-    "userFirstName": random_word(10),
-    "userLastName": random_word(10),
-    "userEmail": random_word(10),
+    "user_id": 1,
+    "user_first_name": random_word(10),
+    "user_last_name": random_word(10),
+    "user_email": random_word(10),
     "name": random_word(10),
     "content": random_word(10),
     "type": 1,
     "collections": [],
-    "createdAt": dt,
-    "updatedAt": dt,
+    "created_at": dt,
+    "updated_at": dt,
     "parents": [PARENT_DS_ID],
     "children": [CHILD_DS_ID],
 }
-PATH_DS_POST_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {"status": 400, "error": "oops"}
+PATH_DS_POST_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {
+    "status": HTTPBadRequest.status_code,
+    "error": "oops",
+}
 PATH_DS_GET_RESPONSE_PAYLOAD = deepcopy(PATH_DS_POST_RESPONSE_PAYLOAD)
 PATH_DS_GET_RESPONSE_ERROR_PAYLOAD: MetisErrorDTO = {
-    "status": 402,
+    "status": HTTPPaymentRequired.status_code,
     "error": {"message": "oops"},
 }
 PATH_DS_DELETE_RESPONSE_ERROR_PAYLOAD = deepcopy(PATH_DS_POST_RESPONSE_ERROR_PAYLOAD)
@@ -72,7 +80,7 @@ event_stream: List[MetisMessageEvent] = []
 
 def make_datasources_event(req_id: str, datas) -> MetisMessageEvent:
     "Create datasources event with content"
-    evt_data_dto = {"reqId": req_id, "data": datas, "total": 1, "types": []}
+    evt_data_dto = {"req_id": req_id, "data": datas, "total": 1, "types": []}
     return MetisMessageEvent(
         "datasources", "datasources", json.dumps(evt_data_dto), "", ""
     )
@@ -80,7 +88,7 @@ def make_datasources_event(req_id: str, datas) -> MetisMessageEvent:
 
 def make_error_event(req_id: str, datas) -> MetisMessageEvent:
     "Create errors event with content"
-    evt_data_dto = {"reqId": req_id, "data": datas}
+    evt_data_dto = {"req_id": req_id, "data": datas}
     return MetisMessageEvent("errors", "errors", json.dumps(evt_data_dto), "", "")
 
 
@@ -104,28 +112,27 @@ async def ping_handler(_) -> web.Response:
 
 async def datasource_create_handler(request: web.Request) -> web.Response:
     "Request handler"
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     payload = await request.json()
     if payload.get("content") == "ok":
         ds_dto = {
             **PATH_DS_POST_RESPONSE_PAYLOAD,
-            "createdAt": dt.isoformat(),
-            "updatedAt": dt.isoformat(),
+            "created_at": dt.isoformat(),
+            "updated_at": dt.isoformat(),
         }
-        evt = make_datasources_event(body["reqId"], [ds_dto])
+        evt = make_datasources_event(body["req_id"], [ds_dto])
     else:
-        evt = make_error_event(body["reqId"], [PATH_DS_POST_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_DS_POST_RESPONSE_ERROR_PAYLOAD])
 
     event_stream.append(evt)
-
     return web.json_response(body, status=HTTPOk.status_code)
 
 
 async def list_datasources_handler(request: web.Request) -> web.Response:
     "Request handler"
     auth_header = request.headers.get("Authorization", "")
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     if auth_header == "Bearer slow":
         await asyncio.sleep(10)
@@ -133,12 +140,12 @@ async def list_datasources_handler(request: web.Request) -> web.Response:
     if auth_header != f"Bearer {str(True)}":
         ds_dto = {
             **PATH_DS_GET_RESPONSE_PAYLOAD,
-            "createdAt": dt.isoformat(),
-            "updatedAt": dt.isoformat(),
+            "created_at": dt.isoformat(),
+            "updated_at": dt.isoformat(),
         }
-        evt = make_datasources_event(body["reqId"], [ds_dto])
+        evt = make_datasources_event(body["req_id"], [ds_dto])
     else:
-        evt = make_error_event(body["reqId"], [PATH_DS_GET_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_DS_GET_RESPONSE_ERROR_PAYLOAD])
 
     event_stream.append(evt)
 
@@ -151,12 +158,12 @@ async def delete_datasource_handler(request: web.Request) -> web.Response:
     if request.match_info.get("id") not in ["1", "2"]:
         return web.Response(status=HTTPNotFound.status_code)
 
-    body: MetisRequestIdDTO = {"reqId": random_word(10)}
+    body: MetisRequestIdDTO = {"req_id": random_word(10)}
 
     if request.match_info.get("id") == "2":
-        evt = make_error_event(body["reqId"], [PATH_DS_DELETE_RESPONSE_ERROR_PAYLOAD])
+        evt = make_error_event(body["req_id"], [PATH_DS_DELETE_RESPONSE_ERROR_PAYLOAD])
     else:
-        evt = make_datasources_event(body["reqId"], [])
+        evt = make_datasources_event(body["req_id"], [])
 
     event_stream.append(evt)
 

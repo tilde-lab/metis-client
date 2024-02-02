@@ -10,7 +10,7 @@ from ..dtos import (
     MetisCollectionVisibility,
     MetisRequestIdDTO,
 )
-from ..helpers import raise_on_metis_error
+from ..helpers import metis_json_decoder, raise_on_metis_error
 from ..models import act_and_get_result_from_stream
 from .base import BaseNamespace
 
@@ -43,9 +43,9 @@ class MetisV0CollectionsNamespace(BaseNamespace):
         "Create or edit the collection"
         payload = MetisCollectionCreateDTO(
             title=title,
-            typeId=type_id,
+            type_id=type_id,
             description=opts.get("description", ""),
-            dataSources=opts.get("data_source_ids", []),
+            data_sources=opts.get("data_source_ids", []),
             users=opts.get("user_ids", []),
             visibility=opts.get("visibility", "private"),
         )
@@ -59,7 +59,7 @@ class MetisV0CollectionsNamespace(BaseNamespace):
             json=payload,
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     async def create(
         self, type_id: int, title: str, **opts: Unpack[MetisCollectionsCreateKwargs]
@@ -72,7 +72,7 @@ class MetisV0CollectionsNamespace(BaseNamespace):
         if evt["type"] == "collections":
             data = sorted(
                 evt.get("data", {}).get("data", []),
-                key=lambda x: x.get("createdAt", datetime.fromordinal(1)),
+                key=lambda x: x.get("created_at", datetime.fromordinal(1)),
             )
             return data[-1] if data else None
 
@@ -83,7 +83,7 @@ class MetisV0CollectionsNamespace(BaseNamespace):
             url=self._base_url,
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     @raise_on_metis_error
     async def list(self) -> Sequence[MetisCollectionDTO]:
@@ -102,7 +102,7 @@ class MetisV0CollectionsNamespace(BaseNamespace):
             url=self._base_url / str(collection_id),
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     async def delete(self, collection_id: int) -> None:
         "Remove a collection by id and wait for result"
