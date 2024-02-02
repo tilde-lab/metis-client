@@ -1,4 +1,5 @@
 """Calculations endpoints namespace"""
+
 import sys
 
 from ..helpers import metis_json_decoder, raise_on_metis_error

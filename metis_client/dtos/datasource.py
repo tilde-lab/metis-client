@@ -1,5 +1,7 @@
 """Data sources DTOs"""
 
+# pylint: disable=too-many-ancestors
+
 import sys
 from enum import Enum
 

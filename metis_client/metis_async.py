@@ -77,9 +77,11 @@ class MetisAPIAsync(MetisBase):
         if session is None:
             timeout = opts.get("timeout", None)
             session = aiohttp.ClientSession(
-                timeout=timeout
-                if isinstance(timeout, ClientTimeout)
-                else ClientTimeout(total=timeout or None),
+                timeout=(
+                    timeout
+                    if isinstance(timeout, ClientTimeout)
+                    else ClientTimeout(total=timeout or None)
+                ),
                 headers=headers,
                 trace_configs=opts.get("trace_configs"),
             )

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Example of usage of synchronous client"""
-# pylint: disable=no-value-for-parameter
+# pylint: skip-file
 
 import asyncio
 import sys

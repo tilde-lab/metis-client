@@ -1,4 +1,5 @@
 """Calculations endpoints namespace"""
+
 import sys
 from datetime import datetime
 from functools import partial

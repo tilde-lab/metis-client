@@ -1,5 +1,7 @@
 """Collections DTOs"""
 
+# pylint: disable=too-many-ancestors
+
 import sys
 from typing import Literal, Union
 

@@ -1,4 +1,5 @@
 """Calculation DTOs"""
+
 import sys
 
 from .base import MetisTimestampsDTO

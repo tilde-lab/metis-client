@@ -1,4 +1,5 @@
 """Stream endpoint namespace"""
+
 import asyncio
 import sys
 from typing import Optional

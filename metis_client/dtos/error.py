@@ -1,5 +1,7 @@
 """Error DTOs"""
 
+# pylint: disable=too-many-ancestors
+
 import sys
 from typing import Union
 

@@ -155,7 +155,7 @@ class MetisClient(MetisBase):
                 f"Timeout of {opts.get('timeout')} reached while waiting for {str(url)}"
             ) from None
 
-        except BaseException as exc:  # pragma: no cover
+        except BaseException as exc:  # pragma: no cover  # noqa: B036
             raise MetisException(
                 f"Unexpected exception for {str(url)!r} with - {exc}"
             ) from exc
@@ -179,7 +179,7 @@ class MetisClient(MetisBase):
             raise MetisException(
                 f"Broken payload data from {str(url)!r}: {exc}"
             ) from exc
-        except BaseException as exc:  # pragma: no cover
+        except BaseException as exc:  # pragma: no cover  # noqa: B036
             raise MetisException(
                 f"Could not handle response data from {str(url)!r} with - {exc}"
             ) from exc
