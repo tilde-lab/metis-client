@@ -31,6 +31,7 @@ dependencies = [
     "aiohttp >= 3.7.4",
     "aiohttp-sse-client >= 0.2.1",
     "asgiref >= 3.5.2",
+    "camel-converter >= 3",
     "typing-extensions >= 4.2.0; python_version < '3.11'",
     "yarl >= 1.6.3",
 ]
@@ -41,7 +42,7 @@ debug = [
 ]
 lint = [
      "autoflake",
-     "black >= 23.1",
+     "black >= 24.1",
      "flake8",
      "flake8-bugbear",
      "isort",
@@ -114,6 +115,9 @@ max-line-length = 88
 output-format = "colorized"
 reports = "no"
 score = "no"
+
+[tool.pylint.similarities]
+min-similarity-lines = 8
 
 [tool.pylint-per-file-ignores]
 "/tests/" = "redefined-outer-name"

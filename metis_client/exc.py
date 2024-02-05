@@ -1,6 +1,5 @@
 """Custom exceptions for metis_client."""
 
-
 from typing import Optional
 
 

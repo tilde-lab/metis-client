@@ -1,20 +1,12 @@
 """Data sources DTOs"""
 
-import sys
+# pylint: disable=too-many-ancestors
+
 from enum import Enum
 
+from ..compat import Sequence, TypedDict
 from .base import MetisTimestampsDTO
 from .collection import MetisCollectionDTO
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import TypedDict
-else:  # pragma: no cover
-    from typing import TypedDict
 
 
 class DataSourceType(int, Enum):
@@ -34,10 +26,10 @@ class MetisDataSourceDTO(MetisTimestampsDTO):
     id: int
     parents: Sequence[int]
     children: Sequence[int]
-    userId: int
-    userFirstName: str
-    userLastName: str
-    userEmail: str
+    user_id: int
+    user_first_name: str
+    user_last_name: str
+    user_email: str
     name: str
     content: str
     type: int

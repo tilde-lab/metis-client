@@ -1,20 +1,11 @@
 """Collections DTOs"""
 
-import sys
+# pylint: disable=too-many-ancestors
+
 from typing import Literal, Union
 
+from ..compat import NotRequired, Sequence, TypedDict
 from .base import MetisTimestampsDTO
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import NotRequired, TypedDict
-else:  # pragma: no cover
-    from typing import NotRequired, TypedDict
-
 
 MetisCollectionVisibility = Union[
     Literal["private"], Literal["shared"], Literal["community"]
@@ -35,8 +26,8 @@ class MetisCollectionCommonDTO(TypedDict):
 
     id: NotRequired[int]
     title: str
-    typeId: int
-    dataSources: NotRequired[Sequence[int]]
+    type_id: int
+    data_sources: NotRequired[Sequence[int]]
     users: NotRequired[Sequence[int]]
 
 
@@ -54,9 +45,9 @@ class MetisCollectionDTO(MetisCollectionCommonDTO, MetisTimestampsDTO):
     description: str
     visibility: MetisCollectionVisibility
 
-    userId: int
-    userFirstName: NotRequired[str]
-    userLastName: NotRequired[str]
-    typeSlug: NotRequired[str]
-    typeLabel: NotRequired[str]
-    typeFlavor: NotRequired[str]
+    user_id: int
+    user_first_name: NotRequired[str]
+    user_last_name: NotRequired[str]
+    type_slug: NotRequired[str]
+    type_label: NotRequired[str]
+    type_flavor: NotRequired[str]

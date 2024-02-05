@@ -1,11 +1,12 @@
 """Calculations endpoints namespace"""
-import sys
+
 from datetime import datetime
 from functools import partial
 from inspect import iscoroutinefunction
 from typing import Awaitable, Callable, Optional, Union, cast
 from warnings import warn
 
+from ..compat import Sequence
 from ..dtos import (
     DataSourceType,
     MetisCalculationDTO,
@@ -13,15 +14,9 @@ from ..dtos import (
     MetisRequestIdDTO,
 )
 from ..exc import MetisPayloadException
-from ..helpers import raise_on_metis_error
+from ..helpers import metis_json_decoder, raise_on_metis_error
 from ..models import act_and_get_result_from_stream
 from .base import BaseNamespace
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
 
 DATA_SOURCE_CALC_RESULT_TYPES = [DataSourceType.PROPERTY, DataSourceType.PATTERN]
 
@@ -40,7 +35,7 @@ class MetisV0CalculationsNamespace(BaseNamespace):
             url=self._base_url / str(calc_id),
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     async def cancel(self, calc_id: int) -> None:
         "Cancel calculation and wait for result"
@@ -61,7 +56,7 @@ class MetisV0CalculationsNamespace(BaseNamespace):
             json={"dataId": data_id, "engine": engine, "input": input},
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     async def create(
         self,
@@ -80,7 +75,7 @@ class MetisV0CalculationsNamespace(BaseNamespace):
         if evt["type"] == "calculations":
             data = sorted(
                 evt.get("data", {}).get("data", []),
-                key=lambda x: x.get("createdAt", datetime.fromordinal(1)),
+                key=lambda x: x.get("created_at", datetime.fromordinal(1)),
             )
             return data[-1] if data else None
 
@@ -186,7 +181,7 @@ class MetisV0CalculationsNamespace(BaseNamespace):
             url=self._base_url,
             auth_required=True,
         ) as resp:
-            return await resp.json()
+            return await resp.json(loads=metis_json_decoder)
 
     async def list(self) -> Sequence[MetisCalculationDTO]:
         "List all user's calculations and wait for result"

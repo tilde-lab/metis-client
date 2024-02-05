@@ -15,7 +15,7 @@ from ..dtos import (
     MetisEventDTO,
     MetisPongEventDTO,
 )
-from ..helpers import dict_dt_from_dt_str
+from ..helpers import metis_json_decoder
 
 
 @dataclass(frozen=True)
@@ -51,21 +51,19 @@ class MetisMessageEvent(MessageEvent):
                 partial(MetisCollectionsEventDTO, type="collections"),
             ):
                 if dto.keywords["type"] in [self.type, self.message]:
-                    data = json.loads(self.data)
-                    # convert date strings to datetime
-                    if isinstance(data, dict) and isinstance(data.get("data"), list):
-                        data["data"] = list(map(dict_dt_from_dt_str, data["data"]))
-                    if isinstance(data, dict) and isinstance(data.get("types"), list):
-                        data["types"] = list(map(dict_dt_from_dt_str, data["types"]))
+                    data = metis_json_decoder(self.data)
 
                     return dto(data=data)
         except json.JSONDecodeError as err:
             return MetisErrorEventDTO(
                 type="errors",
-                data={"reqId": "", "data": [MetisErrorDTO(status=400, error=str(err))]},
+                data={
+                    "req_id": "",
+                    "data": [MetisErrorDTO(status=400, error=str(err))],
+                },
             )
         message = f"Unknown event type: {str(self)}"
         return MetisErrorEventDTO(
             type="errors",
-            data={"reqId": "", "data": [MetisErrorDTO(status=400, error=message)]},
+            data={"req_id": "", "data": [MetisErrorDTO(status=400, error=message)]},
         )

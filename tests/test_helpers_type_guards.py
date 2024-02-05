@@ -4,9 +4,9 @@ import pytest
 
 from metis_client.dtos import (
     MetisErrorDTO,
-    MetisErrorMessageDTO,
     MetisErrorEventDataDTO,
     MetisErrorEventDTO,
+    MetisErrorMessageDTO,
 )
 from metis_client.helpers import (
     is_metis_error_dto,
@@ -58,17 +58,17 @@ def test_is_metis_error_dto(x, expected):
 
 
 GOOD_ERROR_EVENT_DATA1: MetisErrorEventDataDTO = {
-    "reqId": "id",
+    "req_id": "id",
     "data": [GOOD_ERROR1, GOOD_ERROR2],
 }
-GOOD_ERROR_EVENT_DATA2: MetisErrorEventDataDTO = {"reqId": "id", "data": []}
+GOOD_ERROR_EVENT_DATA2: MetisErrorEventDataDTO = {"req_id": "id", "data": []}
 BAD_ERROR_EVENT_DATA1 = "error event data"
 BAD_ERROR_EVENT_DATA2 = {}
-BAD_ERROR_EVENT_DATA3 = {"reqId": "id"}
+BAD_ERROR_EVENT_DATA3 = {"req_id": "id"}
 BAD_ERROR_EVENT_DATA4 = {"data": []}
-BAD_ERROR_EVENT_DATA5 = {"reqId": "id", "data": ""}
-BAD_ERROR_EVENT_DATA6 = {"reqId": "id", "data": [BAD_ERROR1]}
-BAD_ERROR_EVENT_DATA7 = {"reqId": "id", "data": [GOOD_ERROR1, BAD_ERROR1]}
+BAD_ERROR_EVENT_DATA5 = {"req_id": "id", "data": ""}
+BAD_ERROR_EVENT_DATA6 = {"req_id": "id", "data": [BAD_ERROR1]}
+BAD_ERROR_EVENT_DATA7 = {"req_id": "id", "data": [GOOD_ERROR1, BAD_ERROR1]}
 
 
 @pytest.mark.parametrize(

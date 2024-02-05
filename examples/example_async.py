@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Example of usage of asynchronous client"""
+# pylint: skip-file
 
 import asyncio
 import sys

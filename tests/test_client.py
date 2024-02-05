@@ -35,6 +35,7 @@ from metis_client.exc import (
     MetisPayloadException,
     MetisQuotaException,
 )
+from metis_client.helpers import metis_json_decoder
 from tests.helpers import random_word
 
 TOKEN = random_word(10)
@@ -45,6 +46,7 @@ TOO_MANY_COUNTER = count(0)
 PATH_SLOW_RESPONSE = "/slow"
 PATH_PAYLOAD_ERROR = "/payload_error"
 PATH_ECHO_STATUS = "/echo_status"
+PATH_JSON_CASE_CHECK_STATUS = "/json_case_check"
 PATH_SSE_SIMPLE = "/sse"
 
 
@@ -89,6 +91,13 @@ async def echo_status_handler(request: web.Request) -> web.Response:
     )
 
 
+async def json_case_check_status_handler(request: web.Request) -> web.Response:
+    "Request handler"
+    payload = await request.json()
+    out_data = {"original": json.dumps(payload), "payload": payload}
+    return web.json_response(out_data)
+
+
 async def sse_simple_handler(request: web.Request) -> web.Response:
     "Request handler"
     status_code = int(request.query.get("force_status", HTTPOk.status_code))
@@ -114,6 +123,7 @@ async def create_app() -> web.Application:
     app.router.add_get(PATH_SLOW_RESPONSE, slow_response_handler)
     app.router.add_get(PATH_PAYLOAD_ERROR, payload_error_handler)
     app.router.add_get(PATH_ECHO_STATUS, echo_status_handler)
+    app.router.add_post(PATH_JSON_CASE_CHECK_STATUS, json_case_check_status_handler)
     app.router.add_get(PATH_SSE_SIMPLE, sse_simple_handler)
     return app
 
@@ -354,3 +364,25 @@ async def test_sse_response_errors(
         await asyncio.create_task(
             client.sse(URL(PATH_SSE_SIMPLE).with_query(query), on_message)
         )
+
+
+@pytest.mark.parametrize(
+    "data, expected",
+    [
+        (
+            {"req_id": 1, "data_sources": [{"type_id": 1}]},
+            {"reqId": 1, "dataSources": [{"typeId": 1}]},
+        ),
+        ("string", "string"),
+    ],
+)
+async def test_json_case(
+    client: MetisClient, data: Dict, expected: Dict
+):  # pylint: disable=redefined-outer-name
+    "Test case converter"
+    async with client.request(
+        url=URL(PATH_JSON_CASE_CHECK_STATUS), method="POST", json=data
+    ) as resp:
+        body = await resp.json(loads=metis_json_decoder)
+        assert body["original"] == json.dumps(expected)
+        assert body["payload"] == data

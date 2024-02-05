@@ -1,30 +1,19 @@
 """SSE DTOs"""
 
-import sys
 from typing import Literal, Union
 
+from ..compat import Sequence, TypedDict
 from .calculation import MetisCalculationDTO
 from .collection import MetisCollectionDTO, MetisCollectionTypeDTO
 from .datasource import MetisDataSourceDTO
 from .error import MetisErrorDTO
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Sequence
-else:  # pragma: no cover
-    from collections.abc import Sequence
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import TypedDict
-else:  # pragma: no cover
-    from typing import TypedDict
-
 
 MetisEventType = Literal["calculations", "collections", "datasources", "errors", "pong"]
 
 
 class MetisErrorEventDataDTO(TypedDict):
     "Errors event data DTO"
-    reqId: str
+    req_id: str
     data: Sequence[MetisErrorDTO]
 
 
@@ -42,7 +31,7 @@ class MetisPongEventDTO(TypedDict):
 
 class MetisDataSourcesEventDataDTO(TypedDict):
     "Data sources event data DTO"
-    reqId: str
+    req_id: str
     data: Sequence[MetisDataSourceDTO]
     total: int
     types: Sequence[MetisCollectionTypeDTO]
@@ -56,7 +45,7 @@ class MetisDataSourcesEventDTO(TypedDict):
 
 class MetisCalculationsEventDataDTO(TypedDict):
     "Calculations event data DTO"
-    reqId: str
+    req_id: str
     data: Sequence[MetisCalculationDTO]
     total: int
     types: Sequence[MetisCollectionTypeDTO]
@@ -70,7 +59,7 @@ class MetisCalculationsEventDTO(TypedDict):
 
 class MetisCollectionsEventDataDTO(TypedDict):
     "Collections event data DTO"
-    reqId: str
+    req_id: str
     data: Sequence[MetisCollectionDTO]
     total: int
     types: Sequence[MetisCollectionTypeDTO]

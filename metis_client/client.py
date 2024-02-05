@@ -1,12 +1,11 @@
 """Low level http and SSE client"""
 
-import sys
+import json
 from asyncio import CancelledError
 from asyncio import TimeoutError as AsyncioTimeoutError
 from asyncio import sleep
 from concurrent.futures import TimeoutError as FuturesTimeoutError
 from datetime import timedelta
-from json import JSONDecodeError
 from typing import Any, Optional, Union
 
 import aiohttp
@@ -25,22 +24,11 @@ from aiohttp.web_exceptions import (
 from aiohttp_sse_client import client as sse_client
 from yarl import URL
 
+from .compat import Callable, Dict, Mapping, NotRequired, TypedDict, Unpack
 from .const import HttpMethods
 from .exc import MetisConnectionException, MetisException
-from .helpers import http_to_metis_error_map
+from .helpers import http_to_metis_error_map, metis_json_decoder, metis_json_encoder
 from .models import BaseAuthenticator, MetisBase, MetisNoAuth
-
-if sys.version_info < (3, 9):  # pragma: no cover
-    from typing import Callable, Dict, Mapping
-else:  # pragma: no cover
-    from collections.abc import Callable, Mapping
-
-    Dict = dict
-
-if sys.version_info < (3, 11):  # pragma: no cover
-    from typing_extensions import NotRequired, TypedDict, Unpack
-else:  # pragma: no cover
-    from typing import NotRequired, TypedDict, Unpack
 
 
 class ClientRequestKwargs(TypedDict):
@@ -77,6 +65,8 @@ class MetisClient(MetisBase):
         `auth`: Authenticator, subclass of `BaseAuthenticator`.
         """
         self._session = session
+        if self._session.json_serialize is not metis_json_encoder:
+            self._session._json_serialize = metis_json_encoder
         self._auth = auth or MetisNoAuth()
         if not base_url.is_absolute():
             raise TypeError("Base URL should be absolute")
@@ -153,7 +143,7 @@ class MetisClient(MetisBase):
                 f"Timeout of {opts.get('timeout')} reached while waiting for {str(url)}"
             ) from None
 
-        except BaseException as exc:  # pragma: no cover
+        except BaseException as exc:  # pragma: no cover  # noqa: B036
             raise MetisException(
                 f"Unexpected exception for {str(url)!r} with - {exc}"
             ) from exc
@@ -163,7 +153,9 @@ class MetisClient(MetisBase):
             body = None
             if result.content_type.startswith("application/json"):
                 body = await result.json(
-                    encoding="utf-8", content_type=result.content_type
+                    encoding="utf-8",
+                    content_type=result.content_type,
+                    loads=metis_json_decoder,
                 )
                 if isinstance(body, dict) and body.get("error", None):
                     msg = str(body.get("error"))
@@ -171,11 +163,11 @@ class MetisClient(MetisBase):
                 msg = await result.text("utf-8")
             else:
                 msg = str(await result.read())
-        except (ClientPayloadError, JSONDecodeError) as exc:
+        except (ClientPayloadError, json.JSONDecodeError) as exc:
             raise MetisException(
                 f"Broken payload data from {str(url)!r}: {exc}"
             ) from exc
-        except BaseException as exc:  # pragma: no cover
+        except BaseException as exc:  # pragma: no cover  # noqa: B036
             raise MetisException(
                 f"Could not handle response data from {str(url)!r} with - {exc}"
             ) from exc
