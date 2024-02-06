@@ -1,3 +1,13 @@
+## v0.7.0 (2024-02-06)
+
+### Feat
+
+- camel case <-> snake case autoconversion
+
+### Refactor
+
+- code dedup
+
 ## v0.6.0 (2023-09-23)
 
 ### Feat
