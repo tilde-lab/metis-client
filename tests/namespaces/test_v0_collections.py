@@ -217,7 +217,7 @@ async def test_create_collection(
         "type_id": type_id,
         "title": PATH_C_PUT_PAYLOAD["title"],
         "description": PATH_C_PUT_PAYLOAD["description"],
-        "data_source_ids": PATH_C_PUT_PAYLOAD["data_sources"],
+        "data_sources": PATH_C_PUT_PAYLOAD["data_sources"],
         "user_ids": PATH_C_PUT_PAYLOAD["users"],
         "visibility": PATH_C_PUT_PAYLOAD["visibility"],
     }
