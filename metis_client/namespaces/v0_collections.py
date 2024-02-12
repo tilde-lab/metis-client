@@ -20,7 +20,7 @@ class MetisCollectionsCreateKwargs(TypedDict):
     "MetisV0CollectionsNamespace.create kwargs"
     id: NotRequired[int]
     description: NotRequired[str]
-    data_source_ids: NotRequired[Sequence[int]]
+    data_sources: NotRequired[Sequence[int]]
     user_ids: NotRequired[Sequence[int]]
     visibility: NotRequired[MetisCollectionVisibility]
 
@@ -36,7 +36,7 @@ class MetisV0CollectionsNamespace(BaseNamespace):
             title=title,
             type_id=type_id,
             description=opts.get("description", ""),
-            data_sources=opts.get("data_source_ids", []),
+            data_sources=opts.get("data_sources", []),
             users=opts.get("user_ids", []),
             visibility=opts.get("visibility", "private"),
         )
