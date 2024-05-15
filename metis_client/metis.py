@@ -1,15 +1,17 @@
 """Metis API synchronous client"""
 
 import asyncio
-from functools import partial
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial, wraps
 from typing import Any, Literal, Optional, Sequence, TypeVar, Union, cast
+from warnings import warn
 
 from aiohttp.typedefs import StrOrURL
-from asgiref.sync import async_to_sync
 
 from metis_client.dtos.datasource import MetisDataSourceDTO
 
 from .compat import Awaitable, Callable, Concatenate, ParamSpec, Unpack
+from .exc import MetisAsyncRuntimeWarning
 from .metis_async import MetisAPIAsync, MetisAPIKwargs
 from .models.base import MetisBase
 from .namespaces.v0_calculations import MetisCalculationOnProgressT
@@ -55,16 +57,44 @@ def to_sync_with_metis_client(
     - wrap all with async_to_sync converter
     """
 
+    @wraps(func)
     async def inner(
         self: MetisNamespaceSyncBase, *args: ParamT.args, **kwargs: ParamT.kwargs
     ) -> ReturnT_co:
+        """
+        Call method with timeout with self, client and other args.
+        """
         # pylint: disable=protected-access
         timeout = self._get_timeout(cast(TimeoutType, kwargs.get("timeout", None)))
         # pylint: disable=protected-access
         async with self._client_getter() as client:
             return await asyncio.wait_for(func(self, client, *args, **kwargs), timeout)
 
-    return cast(Any, async_to_sync(inner))
+    @wraps(func)
+    def outer(
+        self: MetisNamespaceSyncBase, *args: ParamT.args, **kwargs: ParamT.kwargs
+    ) -> ReturnT_co:
+        """
+        Execute the async method synchronously in sync and async runtime.
+        """
+        coro = inner(self, *args, **kwargs)
+        try:
+            asyncio.get_running_loop()  # Triggers RuntimeError if no running event loop
+
+            warn(
+                MetisAsyncRuntimeWarning(
+                    "Using a synchronous API in an asynchronous runtime. "
+                    "Consider switching to MetisAPIAsync."
+                )
+            )
+
+            # Create a separate thread so we can block before returning
+            with ThreadPoolExecutor(1) as pool:
+                return pool.submit(lambda: asyncio.run(coro)).result()
+        except RuntimeError:
+            return asyncio.run(coro)
+
+    return outer
 
 
 class MetisCalculationsNamespaceSync(MetisNamespaceSyncBase):

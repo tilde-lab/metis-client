@@ -53,3 +53,7 @@ class MetisAuthenticationException(MetisError):
 
 class MetisQuotaException(MetisError):
     """This is raised when quota excided."""
+
+
+class MetisAsyncRuntimeWarning(UserWarning):
+    """Use of sync API in async runtime"""
