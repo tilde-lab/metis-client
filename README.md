@@ -5,7 +5,7 @@
 
 <p align="center"><img src="https://github.com/metis-science/metis-client/blob/master/metis-client.png" width="300" /></p>
 
-This library allows for programmatic interactions with the [Metis infrastructure](https://github.com/basf/metis-bff).
+This library allows for programmatic interactions with the [Metis infrastructure](https://github.com/search?q=org%3Abasf+metis).
 
 
 ## Installation
@@ -27,7 +27,7 @@ from metis_client import MetisAPIAsync, MetisTokenAuth
 async def main():
     async with MetisAPIAsync(API_URL, auth=MetisTokenAuth("VERY_SECRET_TOKEN")) as client:
         print(await client.v0.auth.whoami())
-        data = await client.v0.datasources.create(content)
+        data = await client.v0.datasources.create(content, name)
         results = await client.v0.calculations.create_get_results(data["id"])
         print(resuls)
 ```
@@ -42,7 +42,7 @@ A synchronous client is `MetisAPI`. Example of usage:
 from metis_client import MetisAPI, MetisTokenAuth
 
 client = MetisAPI(API_URL, auth=MetisTokenAuth("VERY_SECRET_TOKEN"), timeout=5)
-data = client.v0.datasources.create(content)
+data = client.v0.datasources.create(content, name)
 results = client.v0.calculations.create_get_results(data["id"], timeout=False)
 print(results)
 ```
@@ -53,7 +53,7 @@ NB in development one can replace a `VERY_SECRET_TOKEN` string with the developm
 
 ## Contributing
 
-Please give a minute to the [contribution guide](https://github.com/metis-science/metis-client/blob/master/CONTRIBUTING.md). Note, that our [changelog](https://github.com/metis-science/metis-client/blob/master/CHANGELOG.md) is maintained fully automatically via [GitHub actions](https://github.com/metis-science/metis-client/tree/master/.github/workflows).
+Please give a minute to the [contribution guide](https://github.com/metis-science/metis-client/blob/master/CONTRIBUTING.md). Note, that our [changelog](https://github.com/metis-science/metis-client/blob/master/CHANGELOG.md) is maintained fully automatically via [GitHub actions](https://github.com/metis-science/metis-client/tree/master/.github/workflows). An approved release is also automatically uploaded to PyPI. Feel free to use these actions in your own repo, just set the correct repo name in the action `.yml` file.
 
 
 ## License
