@@ -1,3 +1,9 @@
+## v0.7.2 (2024-05-22)
+
+### Fix
+
+- **MetisAPI**: ability to run sync API in async runtime
+
 ## v0.7.1 (2024-02-12)
 
 ### Fix

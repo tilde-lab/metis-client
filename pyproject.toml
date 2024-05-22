@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "metis-client"
-version = "0.7.1"
+version = "0.7.2"
 description = """Metis infra API client in Python"""
 authors = [{name = "Sergei Korolev", email = "knopki@duck.com"}]
 readme = "README.md"
