@@ -60,6 +60,7 @@ Please give a minute to the [contribution guide](https://github.com/metis-scienc
 
 Author Sergey Korolev, Tilde Materials Informatics
 
-Copyright 2023 BASF SE
+Copyright 2023-2024 BASF SE
+Copyright 2024-2025 Tilde Materials Informatics
 
 BSD 3-Clause
